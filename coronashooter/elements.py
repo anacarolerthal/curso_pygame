@@ -52,9 +52,12 @@ class ElementSprite(pygame.sprite.Sprite):
         if (self.rect.left > self.area.right) or \
                 (self.rect.top > self.area.bottom) or \
                 (self.rect.right < 0):
+            return True
             self.kill()
         if (self.rect.bottom < - 40):
             self.kill()
+            return True
+        return False
 
     def get_speed(self):
         return self.speed
@@ -101,7 +104,7 @@ class Spaceship(ElementSprite):
         :param new_size: the desired size of the sprite. See ElementSprite.scale()
         :type new_size: list
         """
-    
+
         image = "virus.png" if not image else image  # sets the default image
         # calls ElementSprite.__init__()
         super().__init__(image, position, speed, new_size)
@@ -112,6 +115,13 @@ class Spaceship(ElementSprite):
 
     def set_lives(self, lives):
         self.lives = lives
+
+
+class Laser(ElementSprite):
+    def __init__(self, position, speed=.6, image=None, direction=(0, -1)):
+        if not image:
+            image = "tironave1.png"
+        super().__init__(image, position, speed, direction=direction)
 
 
 class Enemy(Spaceship):
@@ -154,7 +164,7 @@ class Spider(Enemy):
         image = f"inimigo1{color}.png" if not image else image
         super().__init__(position, lives, speed, image, size)
 
-    def update(self, dt, playerposx):
+    def update(self, dt, playerposx, lst=None):
         """ Updates the position of the element
         :param dt: time variation
         :type dt: float (?)
@@ -187,8 +197,10 @@ class Shooter(Enemy):
         image = f"inimigo2{color}.png" if not image else image
         super().__init__(position, lives, speed, image, size)
         self.direction = (1, 0)
+        self.shtcounter = 0
+        self.color = color
 
-    def update(self, dt, playerposx):
+    def update(self, dt, playerposx, lst=None):
         """ Updates the position of the element
         :param dt: time variation
         :type dt: float (?)
@@ -207,4 +219,15 @@ class Shooter(Enemy):
             self.direction = (1, 0)
         pos_x += self.direction[0]*self.speed*dt/4
         self.rect.center = (pos_x, pos_y)
+
+        if self.shtcounter > 60:
+            self.shoot(lst)
+            self.shtcounter = 0
+        self.shtcounter += 1
+
         self.check_borders()
+
+    def shoot(self, shoots):
+        laser = Laser((self.rect.center[0], self.rect.top),
+                      image=f'tiroinimigo{self.color}.png', direction=(0, 1))
+        shoots.append([laser, pygame.sprite.RenderPlain(laser)])

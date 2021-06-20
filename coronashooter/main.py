@@ -13,7 +13,6 @@ from elements import *
 import random
 
 
-
 class Game:
     def __init__(self, size=(640, 640), fullscreen=False):
         """ Creates the object that will control the game
@@ -26,6 +25,7 @@ class Game:
         self.elements = {}  # creates the dict which will have all elements of the game
         self.enemies = []
         self.shoots = []
+        self.enemy_shoots = []
         self.spwcounter = 45
         self.colcounter = 0
         self.color = 'G'
@@ -34,7 +34,7 @@ class Game:
         # creates the display with the set size and flags
         self.screen = pygame.display.set_mode(size, flags)
         # creates the background object
-        self.background = Background('fundoG.png')
+        self.background = Background(f'fundo{self.color}.png')
         # sets the game's window title
         pygame.display.set_caption('PC Virus Shooter')
         pygame.mouse.set_visible(0)  # makes mouse cursor invisible
@@ -50,8 +50,10 @@ class Game:
         """
         self.background.update(dt)
         for enemy in self.enemies:
-            enemy[0].update(dt, self.player.rect.center[0])
+            enemy[0].update(dt, self.player.rect.center[0], self.enemy_shoots)
         for shoot in self.shoots:
+            shoot[0].update(dt)
+        for shoot in self.enemy_shoots:
             shoot[0].update(dt)
 
     def draw_elements(self):
@@ -64,6 +66,8 @@ class Game:
         for enemy in self.enemies:
             enemy[1].draw(self.screen)
         for shoot in self.shoots:
+            shoot[1].draw(self.screen)
+        for shoot in self.enemy_shoots:
             shoot[1].draw(self.screen)
 
     def handle_events(self, event, dt=1000):
@@ -81,7 +85,7 @@ class Game:
 
     def spawn(self):
         pos_x = random.randint(0, 640)
-        enemy_type = random.randint(0,1)
+        enemy_type = random.randint(0, 1)
         if self.spwcounter > 60:
             if enemy_type == 0:
                 enemy = Shooter([pos_x, -25], color=self.color)
@@ -98,6 +102,9 @@ class Game:
             if plyr_collision and self.colcounter <= 0:
                 print('ui')
                 self.player.got_hit()
+                enemy[0].got_hit()
+                if enemy[0].get_lives() <= 0:
+                    self.enemies.remove(enemy)
                 self.colcounter = 60
             for shoot in self.shoots:
                 enemy_collision = enemy[0].rect.colliderect(shoot[0].rect)
@@ -107,15 +114,28 @@ class Game:
                     if enemy[0].get_lives() <= 0:
                         self.enemies.remove(enemy)
                     self.shoots.remove(shoot)
+        for shoot in self.enemy_shoots:
+            plyr_collision = self.player.rect.colliderect(shoot[0].rect)
+            if plyr_collision and self.colcounter <= 0:
+                print('ui')
+                self.player.got_hit()
+                self.enemy_shoots.remove(shoot)
+                self.colcounter = 60
         if self.colcounter > 0:
             self.colcounter -= 1
+
+    def garbage_collector(self):
+        for lst in (self.enemies, self.shoots, self.enemy_shoots):
+            for entity in lst:
+                if entity[0].check_borders():
+                    lst.remove(entity)
 
     def loop(self):
         """ Main game loop
         """
         clock = pygame.time.Clock()  # creates the clock object
         dt = 16  # defines the effective speed of the game
-        self.player = Player([320, 540], 5)
+        self.player = Player([320, 540], 3)
         self.elements['player'] = pygame.sprite.RenderPlain(
             self.player)  # prepares the spaceship sprite
         while self.run:
@@ -133,9 +153,9 @@ class Game:
             # Draw the elements on their new positions. Right now only works for the background
             # The elements are drawn on the backbuffer, which is later on flipped to become the frontbuffer
             self.draw_elements()
+            self.garbage_collector()
             pygame.display.flip()
         pygame.quit()  # kill the program
-
 
 
 class Player(Spaceship):
@@ -144,15 +164,15 @@ class Player(Spaceship):
             image = "nave1.png"
         super().__init__(position, lives, speed, image, new_size)
         self.direction = (0, 0)
-        self.vel = (0,0)
+        self.vel = (0, 0)
         self.max_vel = .5
-        self.acc = (0,0)
+        self.acc = (0, 0)
         self.score = 0
         self.size = new_size
         self.isdead = False
 
     def update(self, dt):
-        new_acc = [0,0]
+        new_acc = [0, 0]
         keys = pygame.key.get_pressed()
         if keys[K_LEFT]:
             new_acc[0] -= 1
@@ -162,7 +182,7 @@ class Player(Spaceship):
             new_acc[1] -= 1
         if keys[K_DOWN]:
             new_acc[1] += 1
-        
+
         new_acc = tuple(new_acc)
         if new_acc != self.acc:
             self.acc = new_acc
@@ -173,17 +193,18 @@ class Player(Spaceship):
             elif self.acc[0] == -1:
                 self.set_image('nave3.png', self.size)
 
-        self.vel = (self.vel[0]+self.acc[0]*dt/100, self.vel[1]+self.acc[1]*dt/100)
+        self.vel = (self.vel[0]+self.acc[0]*dt/100,
+                    self.vel[1]+self.acc[1]*dt/100)
         self.normalize_vel()
-        
+
         pos_x = self.rect.center[0] + self.vel[0]*dt
         pos_y = self.rect.center[1] + self.vel[1]*dt
 
         # Reduce the velocity, as of friction
         self.vel = (self.vel[0]*9/10, self.vel[1]*9/10)
-        if abs(self.vel[0])<0.01:
+        if abs(self.vel[0]) < 0.01:
             self.vel = (0, self.vel[1])
-        if abs(self.vel[1])<0.01:
+        if abs(self.vel[1]) < 0.01:
             self.vel = (self.vel[0], 0)
 
         if pos_x < 0:
@@ -205,9 +226,9 @@ class Player(Spaceship):
 
     def normalize_vel(self):
         abs_vel = (self.vel[0]**2+self.vel[1]**2)**.5
-        if abs_vel>self.max_vel:
-            self.vel = (self.vel[0]/abs_vel*self.max_vel, self.vel[1]/abs_vel*self.max_vel)
-
+        if abs_vel > self.max_vel:
+            self.vel = (self.vel[0]/abs_vel*self.max_vel,
+                        self.vel[1]/abs_vel*self.max_vel)
 
     def got_hit(self):
         self.lives -= 1
@@ -226,13 +247,6 @@ class Player(Spaceship):
 
     def add_score(self):
         self.score += 1
-
-
-class Laser(ElementSprite):
-    def __init__(self, position, speed=.6, image=None):
-        if not image:
-            image = "tironave1.png"
-        super().__init__(image, position, speed, direction=(0, -1))
 
 
 # como faz pra jogar mesmo/ foi de agora a pergunta?
