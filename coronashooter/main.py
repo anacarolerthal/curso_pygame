@@ -83,6 +83,10 @@ class Game:
             if key == K_ESCAPE:  # handles keyboard quit
                 self.run = False
 
+        if self.player.score == 5:
+            self.player.score += 5
+            self.level_changer('R')
+
     def spawn(self):
         pos_x = random.randint(0, 640)
         enemy_type = random.randint(0, 1)
@@ -104,7 +108,7 @@ class Game:
                 self.player.got_hit()
                 enemy[0].got_hit()
                 if enemy[0].get_lives() <= 0:
-                    self.enemies.remove(enemy)
+                    self.enemies.remove(enemy)  # e se eu matar o inimigo?
                 self.colcounter = 60
             for shoot in self.shoots:
                 enemy_collision = enemy[0].rect.colliderect(shoot[0].rect)
@@ -129,6 +133,12 @@ class Game:
             for entity in lst:
                 if entity[0].check_borders():
                     lst.remove(entity)
+
+    def level_changer(self, color):
+        self.color = color
+        self.background = Background(f'fundo{self.color}.png')
+        self.enemies.clear()
+        self.enemy_shoots.clear()
 
     def loop(self):
         """ Main game loop
@@ -233,6 +243,7 @@ class Player(Spaceship):
     def got_hit(self):
         self.lives -= 1
         if self.lives <= 0:
+            print(self.score)
             self.isdead = True
 
     def get_pos(self):  # perdao
