@@ -6,7 +6,7 @@ from pygame.locals import (DOUBLEBUF,
                            K_LEFT,
                            K_RIGHT,
                            QUIT,
-                           K_ESCAPE, K_UP, K_DOWN, K_RCTRL, K_LCTRL
+                           K_ESCAPE, K_UP, K_DOWN, K_RCTRL, K_LCTRL, K_SPACE
                            )
 from background import Background
 from elements import *
@@ -132,7 +132,7 @@ class Game:
             self.enemy_counter += 1
         if self.power_up_counter > 180:
             pos_x = random.randint(0, 640)
-            pwup_type = random.randint(1, 2)
+            pwup_type = random.randint(1, 3)
             power_up = PowerUp([pos_x, -25], power=pwup_type)
             self.power_ups.append(
                 [power_up, pygame.sprite.RenderPlain(power_up)])
@@ -228,6 +228,7 @@ class Player(Spaceship):
         self.max_vel = .5
         self.acc = (0, 0)
         self.score = 0
+        self.bombs = 0
         self.size = new_size
         self.power_ups = [False, False, False, False]
         self.spd_counter = 0
@@ -314,6 +315,11 @@ class Player(Spaceship):
                         laser2)], [laser3, pygame.sprite.RenderPlain(laser3)]]  # Cria três lasers
                     for laser in lst:
                         shoots.append(laser)
+            elif key == K_SPACE:
+                if self.bombs > 0:
+                    laser = Laser((self.rect.center[0], self.rect.top))
+                    shoots.append([laser, pygame.sprite.RenderPlain(laser)])
+                    self.bombs -= 1
 
     def normalize_vel(self):
         abs_vel = (self.vel[0]**2+self.vel[1]**2)**.5
@@ -343,6 +349,9 @@ class Player(Spaceship):
             self.spd_counter = 0
         elif power_up == 2:
             self.sht_counter = 0
+        elif power_up == 3:
+            if self.bombs < 3:
+                self.bombs = 3
 
     def add_score(self):
         self.score += 1
