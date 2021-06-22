@@ -16,7 +16,7 @@ import time
 _sound_library = {}  # Biblioteca de efeitos sonoros
 
 
-def play_sound(path):  # Função que toca os efeitos sonoros
+def play_sound(path):  # Função que toca os efeitos sonor
     global _sound_library
     sound = _sound_library.get(path)
     if sound == None:
@@ -62,12 +62,7 @@ class Game:
         pygame.mouse.set_visible(0)  # makes mouse cursor invisible
         self.run = True
         self.loop()  # starts running the game
-    # entao define enemyposy pra 640 dai ele vai pra baixo
-    # e enemyposx pro x do player, dai ele vira uma aranha basically
-    # se resolverem ta bom B.) entao a gente coloca enemypos[0] e enemypos[1] la dentro ne
-    # kkkkkkcrying? epic also, n precisa colocar nos parametros do enemy? co
 
-    # A VIDA É HORRÍVEL
     def update_elements(self, dt):
         """ Updates the background so it feels like moving
 
@@ -202,9 +197,6 @@ class Game:
                     if enemy[0].get_lives() <= 0:
                         if enemy in self.enemies:
                             self.enemies.remove(enemy)
-                            death_drop = enemy.die()
-                            if not death_drop:
-                                self.shoots.append(death_drop)
                     self.shoots.remove(shoot)
         for shoot in self.enemy_shoots:
             plyr_collision = self.player.rect.colliderect(shoot[0].rect)

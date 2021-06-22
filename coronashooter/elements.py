@@ -33,7 +33,7 @@ class ElementSprite(pygame.sprite.Sprite):
         :param speed: velocidade inicial do elemento
         :type speed: int
         :param new_size: tamanho desejado para a imagem
-        :type new_size: list
+        :type new_size: tup
         :param direction: direções para movimentação
         :type direction: tuple
         """
@@ -79,34 +79,45 @@ class ElementSprite(pygame.sprite.Sprite):
         return False
 
     def get_speed(self):
-        """ Encontra a velocidade
+        """ Retorna a velocidade do objeto pygame.Rect
         """
         return self.speed
 
     def set_speed(self, speed):
-        """ Define a velocidade
+        """ Define a velocidade do objeto pygame.Rect
         :param speed: Velocidade
-        :type speed: int 
+        :type speed: int
         """
         self.speed = speed
 
     def get_pos(self):
-        # Pega a posição do objeto pygame.Rect
+        """Retorna a posição do objeto pygame.Rect
+        """
         return (self.rect.center[0],
                 self.rect.bottom)
 
     def set_pos(self, pos):
-        # sets the position of the pygame.Rect object
+        """Define a posição do objeto pygame.Rect
+        :param pos: Posição
+        :type pos: list
+        """
         self.rect.center = (pos[0], pos[1])
 
     def get_size(self):
+        """Retorna o tamanho do objeto pygame.Rect
+        """
         return self.image.get_size()
 
     def scale(self, new_size):
-        # resizes the sprite
+        """ Redefine o tamanho do sprite
+        :param new_size: tamanho desejado
+        :type new_size: tuple
+        """
         self.image = pygame.transform.scale(self.image, new_size)
 
     def set_image(self, image, scale):
+        """
+        """
         self.image = pygame.image.load(os.path.join('images', image))
         self.scale(scale)
 
@@ -225,10 +236,10 @@ class Enemy(Spaceship):
         :type lives: inteiro (?)
         :param speed: a velocidade inicial do elemento em ambos os eixos
         :type speed: lista
-        :param image: a imagem do elemento. A classe possui um valor padrão que é sobesc overwriten when this parameter is not None
+        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
         :type image: string
-        :param new_size: the desired size of the sprite. See ElementSprite.scale()
-        :type new_size: list 
+        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
+        :type new_size: lista
         """
         image = f"inimigo1{color}.png" if not image else image
         super().__init__(position, lives, speed, image, size)
@@ -247,13 +258,10 @@ class Enemy(Spaceship):
     def get_state(self):
         return self.isdead
 
-    def die(self):
-        return None
-
 
 class Spider(Enemy):
     def __init__(self, position, lives=0, speed=.35, image=None, size=(75, 50), color='G'):
-        """  constructor. Basically the same as Spaceship.__init__(), only difference is the default value for image
+        """  construtor. Basically the same as Spaceship.__init__(), only difference is the default value for image
         :param position: the initial position of the element
         :type position: list
         :param lives: how many times the element can get hit before dying
@@ -269,8 +277,8 @@ class Spider(Enemy):
         super().__init__(position, lives, speed, image, size)
 
     def update(self, dt, playerposx, enemies, lst=None):
-        """ Updates the position of the element
-        :param dt: time variation
+        """ Atualiza a posição do elemento
+        :param dt: variação do tempo
         :type dt: float (?)
         """
         # move_speed = (self.speed * dt / 16,
@@ -286,17 +294,17 @@ class Spider(Enemy):
 
 class Shooter(Enemy):
     def __init__(self, position, lives=0, speed=.35, image=None, size=(60, 45), color='G'):
-        """  constructor. Basically the same as Spaceship.__init__(), only difference is the default value for image
-        :param position: the initial position of the element
-        :type position: list
-        :param lives: how many times the element can get hit before dying
-        :type lives: integer (?)
-        :param speed: the initial speed of the element on both axis
-        :type speed: list
-        :param image: the image of the element. The class has a default value that gets overwriten when this parameter is not None
+        """  construtor. Basicamente o mesmo que Spaceship.__init__(), sendo a única diferença o valor padrão para a imagem
+        :param position: a posição inicial do elemento.
+        :type position: lista
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: inteiro (?)
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: lista
+        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
         :type image: string
-        :param new_size: the desired size of the sprite. See ElementSprite.scale()
-        :type new_size: list
+        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
+        :type new_size: lista
         """
         image = f"inimigo2{color}.png" if not image else image
         super().__init__(position, lives, speed, image, size)
@@ -305,8 +313,8 @@ class Shooter(Enemy):
         self.color = color
 
     def update(self, dt, playerposx, enemies, lst=None):
-        """ Updates the position of the element
-        :param dt: time variation
+        """ Atualia a posição do elemento
+        :param dt: variação do tempo
         :type dt: float (?)
         """
         # move_speed = (self.speed * dt / 16,
@@ -338,17 +346,17 @@ class Shooter(Enemy):
 
 class Bomb(Enemy):
     def __init__(self, position, lives=0, speed=.25, image=None, size=(55, 60), color='G'):
-        """  constructor. Basically the same as Spaceship.__init__(), only difference is the default value for image
-        :param position: the initial position of the element
-        :type position: list
-        :param lives: how many times the element can get hit before dying
-        :type lives: integer (?)
-        :param speed: the initial speed of the element on both axis
-        :type speed: list
-        :param image: the image of the element. The class has a default value that gets overwriten when this parameter is not None
+        """  construtor. Basicamente o mesmo que Spaceship.__init__(), sendo a única diferença o valor padrão para a imagem
+        :param position: a posição inicial do elemento.
+        :type position: lista
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: inteiro (?)
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: lista
+        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
         :type image: string
-        :param new_size: the desired size of the sprite. See ElementSprite.scale()
-        :type new_size: list
+        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
+        :type new_size: lista
         """
         image = f"inimigo3{color}.png" if not image else image
         super().__init__(position, lives, speed, image, size)
@@ -356,17 +364,17 @@ class Bomb(Enemy):
 
 class Shield(Enemy):
     def __init__(self, position, lives=0, speed=.35, image=None, size=(50, 50), color='G'):
-        """  constructor. Basically the same as Spaceship.__init__(), only difference is the default value for image
-        :param position: the initial position of the element
-        :type position: list
-        :param lives: how many times the element can get hit before dying
-        :type lives: integer (?)
-        :param speed: the initial speed of the element on both axis
-        :type speed: list
-        :param image: the image of the element. The class has a default value that gets overwriten when this parameter is not None
+        """  construtor. Basicamente o mesmo que Spaceship.__init__(), sendo a única diferença o valor padrão para a imagem
+        :param position: a posição inicial do elemento.
+        :type position: lista
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: inteiro (?)
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: lista
+        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
         :type image: string
-        :param new_size: the desired size of the sprite. See ElementSprite.scale()
-        :type new_size: list
+        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
+        :type new_size: lista
         """
         image = f"inimigo4{color}.png" if not image else image
         super().__init__(position, lives, speed, image, size)
@@ -383,11 +391,11 @@ class Shield(Enemy):
                 self.enemy.shield = True
         else:
             self.enemy = None
-            #self.enemyposx = rand_enemy.get_pos_enemy()[0]
-            #self.enemyposy = rand_enemy.get_pos_enemy()[1]
+            # self.enemyposx = rand_enemy.get_pos_enemy()[0]
+            # self.enemyposy = rand_enemy.get_pos_enemy()[1]
         # else:
-            #self.enemyposx = self.rect.center[0]
-            #self.enemyposy = 640
+            # self.enemyposx = self.rect.center[0]
+            # self.enemyposy = 640
 
     def update(self, dt, playerposx, enemylist, lst=None):
         """ Updates the position of the element 
