@@ -112,9 +112,22 @@ class Game:
             if key == K_ESCAPE:  # handles keyboard quit
                 self.run = False
 
-        # if self.player.score == 5:
-        #    self.player.score += 5
-        #    self.level_changer('R')
+        if self.player.score == 5:
+            self.change_music("TrojanTheme.ogg")
+            self.player.score += 5
+            self.level_changer('R')
+
+    def start_music(self, music):
+        pygame.mixer.init()
+        song = os.path.join('songs', music)
+        pygame.mixer.music.load(song)
+        pygame.mixer.music.play(-1)
+
+    def change_music(self, music):
+        pygame.mixer.music.stop()
+        song = os.path.join('songs', music)
+        pygame.mixer.music.load(song)
+        pygame.mixer.music.play(-1)
 
     def spawn(self):
         if self.enemy_counter > 75:
@@ -198,6 +211,7 @@ class Game:
         self.player = Player([320, 540], 3)
         self.elements['player'] = pygame.sprite.RenderPlain(
             self.player)  # prepares the spaceship sprite
+        self.start_music("LevelTheme.ogg")
         while self.run:
             clock.tick(1000 / dt)
             event = pygame.event.poll()
