@@ -149,7 +149,7 @@ class Game:
                 self.player.got_hit()
                 enemy[0].got_hit()
                 if enemy[0].get_lives() <= 0:
-                    if enemy in self.enemies:
+                    if enemy in self.enemies + self.shields:
                         self.enemies.remove(enemy)
                 self.colcounter = 60
             for shoot in self.shoots:
