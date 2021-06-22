@@ -33,6 +33,11 @@ class Game:
         self.power_up_counter = 0
         self.colcounter = 0
         self.color = 'G'
+        self.color_list = ['G', 'Y', 'R', 'B', 'P']
+        self.level = 0  # essa linha já existia
+        self.waves = [{"spider": 1, "shooter": 0, "bomb": 0, "shield": 0}, {"spider": 1, "shooter": 1, "bomb": 0, "shield": 0}, {
+            "spider": 1, "shooter": 1, "bomb": 0, "shield": 1}, {"spider": 1, "shooter": 1, "bomb": 0, "shield": 1}]
+        self.set_current_wave()
         pygame.init()  # Initiates the pygame module
         flags = DOUBLEBUF | FULLSCREEN if fullscreen else DOUBLEBUF  # sets the display flags
         # creates the display with the set size and flags
@@ -43,7 +48,6 @@ class Game:
         pygame.display.set_caption('PC Virus Shooter')
         pygame.mouse.set_visible(0)  # makes mouse cursor invisible
         self.run = True
-        self.level = 1
         self.loop()  # starts running the game
     # entao define enemyposy pra 640 dai ele vai pra baixo
     # e enemyposx pro x do player, dai ele vira uma aranha basically
@@ -112,10 +116,20 @@ class Game:
             if key == K_ESCAPE:  # handles keyboard quit
                 self.run = False
 
-        if self.player.score == 5:
-            self.change_music("TrojanTheme.ogg")
-            self.player.score += 5
-            self.level_changer('R')
+        # if self.player.score == 5:
+        #     self.change_music("TrojanTheme.ogg")
+        #     self.player.score += 5
+        #     self.level_changer('R')
+
+        if self.player.score == self.level*10 + 10:
+            self.level_changer()
+
+    def set_current_wave(self):
+        new_current_wave = []
+        for enemy in self.waves[self.level]:
+            for i in range(self.waves[self.level][enemy]):
+                new_current_wave.append(enemy)
+        self.current_wave = new_current_wave
 
     def start_music(self, music):
         pygame.mixer.init()
@@ -132,12 +146,13 @@ class Game:
     def spawn(self):
         if self.enemy_counter > 75:
             pos_x = random.randint(0, 640)
-            enemy_type = random.randint(0, 2)
-            if enemy_type == 0:
-                enemy = Shooter([pos_x, -25], color=self.color)
-            elif enemy_type == 1:
+            enemy_n = random.randint(0, len(self.current_wave)-1)
+            enemy_type = self.current_wave[enemy_n]
+            if enemy_type == "spider":
                 enemy = Spider([pos_x, -25], color=self.color)
-            elif enemy_type == 2:
+            elif enemy_type == "shooter":
+                enemy = Shooter([pos_x, -25], color=self.color)
+            elif enemy_type == "shield":
                 enemy = Shield([pos_x, 0], color=self.color)
             self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
             self.enemy_counter = 0
@@ -145,7 +160,7 @@ class Game:
             self.enemy_counter += 1
         if self.power_up_counter > 180:
             pos_x = random.randint(0, 640)
-            pwup_type = random.randint(1, 3)
+            pwup_type = random.randint(1, 2)
             power_up = PowerUp([pos_x, -25], power=pwup_type)
             self.power_ups.append(
                 [power_up, pygame.sprite.RenderPlain(power_up)])
@@ -197,8 +212,10 @@ class Game:
                 if entity[0].check_borders():
                     lst.remove(entity)
 
-    def level_changer(self, color):
-        self.color = color
+    def level_changer(self):
+        self.level += 1
+        self.color = self.color_list[self.level]
+        self.set_current_wave()
         self.background = Background(f'fundo{self.color}.png')
         self.enemies.clear()
         self.enemy_shoots.clear()
