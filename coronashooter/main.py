@@ -36,35 +36,41 @@ class Game:
     def __init__(self, size=(640, 640), fullscreen=False):
         """ Cria o objeto que irá controlar o jogo
 
-        :param size: desired size of the screen
+        :param size: tamanho desejado da tela do jogo
         :type size: tuple
-        :param fullscreen: whether the game will be played on fullscreen or not
-        :type fullscreen: boolean
+        :param fullscreen: define se o jogo terá tela cheia ou não
+        :type fullscreen: boolean. Default False
         """
-        self.elements = {}  # cria o dicionario com todas os elementos do jogo
+        self.elements = {}  # cria o dicionário com todas os elementos do jogo
         self.enemies = []  # cria a lista de todos os inimigos
-        self.shoots = []  # cria a lista com os projecteis do jogador
-        self.enemy_shoots = []  # cria a lista com todos os projecteis inimigos
+        self.shoots = []  # cria a lista com os projécteis do jogador
+        self.enemy_shoots = []  # cria a lista com todos os projécteis inimigos
         self.power_ups = []  # cria a lista de power-ups
-        self.explosions = []
+        self.explosions = []  # cria a lista de explosões
         self.enemy_counter = 45  # contador usado para a lógica de spawn de inimigos
         self.power_up_counter = 0  # contador usado para a lógica de spawn de power-ups
         # timer de colisão para que o jogador não tome dano várias vezes de uma mesma colisão
         self.colcounter = 0
+        self.start = True
         self.color = 'G'  # define a cor dos elementos da primeira fase
-        # lista de cores de cada fase
+        # lista ordenada de cores de cada fase
         self.color_list = ['G', 'Y', 'R', 'B', 'P']
         self.level = 0  # define a fase inicial
-        self.waves = [{"spider": 0, "shooter": 0, "bomb": 1, "shield": 0}, {"spider": 0, "shooter": 0, "bomb": 1, "shield": 0}, {
-            "spider": 1, "shooter": 1, "bomb": 0, "shield": 1}, {"spider": 1, "shooter": 1, "bomb": 0, "shield": 1}]
+        # lista de dicionários para definir a presença dos inimigos nas fases
+        self.waves = [{"spider": 1, "shooter": 0, "bomb": 0, "shield": 0}, {"spider": 1, "shooter": 1, "bomb": 0, "shield": 0}, {
+            "spider": 1, "shooter": 1, "bomb": 1, "shield": 0}, {"spider": 1, "shooter": 1, "bomb": 1, "shield": 1}]
         self.set_current_wave()
         pygame.init()  # inicia o módulo pygame
+
         # seta as flags de renderização
         flags = DOUBLEBUF | FULLSCREEN if fullscreen else DOUBLEBUF
+
         # cria o display
         self.screen = pygame.display.set_mode(size, flags)
+
         # cria o plano de fundo
         self.background = Background(f'fundo{self.color}.png')
+
         # seta o titulo da janela
         pygame.display.set_caption('PC Virus Shooter')
         pygame.mouse.set_visible(0)  # deixa o cursor do mouse invisivel
@@ -72,60 +78,60 @@ class Game:
         self.font_love = pygame.font.Font(
             os.path.join("fonts", 'pixel-love.ttf'), 48)  # configura a fonte para displays
         self.run = True
+
         self.loop()  # roda o jogo
 
     def update_elements(self, dt):
         """ Atualiza diversos aspectos do jogo
 
-        :param dt: unused
-        :type dt: float (?)
+        :param dt: variação de tempo
+        :type dt: int
         """
 
         self.background.update(dt)
-        for enemy in self.enemies:
+        for enemy in self.enemies:  # atualiza inimigos pela lista de inimigos vivos
             enemy[0].update(dt, self.player.rect.center[0],
                             self.enemies, self.enemy_shoots)
-        for shoot in self.shoots:
+        for shoot in self.shoots:  # atualiza tiros do player pela lista desses
             shoot[0].update(dt)
-        for shoot in self.enemy_shoots:
+        for shoot in self.enemy_shoots:  # atualiza tiros dos inimigos pela lista desses
             shoot[0].update(dt)
-        for power_up in self.power_ups:  # nao faço a minima ideia
+        for power_up in self.power_ups:  # atualiza power ups pela lista desses
             power_up[0].update(dt)
-
-        for explosion in self.explosions:
+        for explosion in self.explosions:  # atualiza explosoes pela lista dessas
             explosion[0].update(dt)
 
     def draw_elements(self):
         """ Desenha elementos na tela
-        This is done by passing the screen as a parameter to the element that will draw itself on the screen.
         """
-        self.background.draw(self.screen)  # draw the background
+        self.background.draw(self.screen)
+        for explosion in self.explosions:  # desenha explosoes
+            explosion[1].draw(self.screen)
         for element in self.elements.values():
             element.draw(self.screen)
-        for enemy in self.enemies:
+        for enemy in self.enemies:  # desenha inimigos
             enemy[1].draw(self.screen)
-        for shoot in self.shoots:
+        for shoot in self.shoots:  # desenha tiros do player
             shoot[1].draw(self.screen)
-        for shoot in self.enemy_shoots:
+        for shoot in self.enemy_shoots:  # desenha tiros dos inimigos
             shoot[1].draw(self.screen)
-        for power_up in self.power_ups:
+        for power_up in self.power_ups:  # desenha power ups
             power_up[1].draw(self.screen)
-        for explosion in self.explosions:
-            explosion[1].draw(self.screen)
-        if self.player.shield:
+
+        if self.player.shield:  # desenha shield se houver
             self.player.shield[1].draw(self.screen)
 
     def handle_events(self, event, dt=1000):
-        """ Handles each event in the event queue.
-        This is basically only used for the user to control the spaceship and quit the game
+        """ Lida com os eventos na fila de eventos 
+        Na prática, diz respeito ao controle do Player pelo usuário e pelo quit no jogo
         """
-        # handles window quit (the "x" on top right corner)
+        # lida com a janela de quit ("x" no canto superior direito)
         if event.type == pygame.QUIT or self.player.isdead:
             self.run = False
-        # handles keyboard input
+        # lida com inputs do teclado com funções do Pygame
         if event.type in (KEYDOWN,):
             key = event.key
-            if key == K_ESCAPE:  # handles keyboard quit
+            if key == K_ESCAPE:  # lida com a saída do jogo pelo "esc" do teclado
                 self.run = False
 
         # if self.player.score == 5:
@@ -139,6 +145,7 @@ class Game:
             self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
 
     def set_current_wave(self):
+        """"""
         new_current_wave = []
         for enemy in self.waves[self.level]:
             for i in range(self.waves[self.level][enemy]):
@@ -213,9 +220,9 @@ class Game:
                             # tinha que colocar um (320, y) em outro em (x,320)
                             print('entrou')
                             explosion1 = Explosion(  # pra centralizar
-                                enemy[0].rect.center, type='1', color=self.color)
+                                (320, enemy[0].rect.center[1]), type='1', color=self.color)
                             explosion2 = Explosion(
-                                enemy[0].rect.center, type='2', color=self.color)
+                                (enemy[0].rect.center[0], 320), type='2', color=self.color)
                             self.explosions.append([explosion1, pygame.sprite.RenderPlain(
                                 explosion1)])
                             self.explosions.append([explosion2, pygame.sprite.RenderPlain(
@@ -236,9 +243,9 @@ class Game:
                             # tinha que colocar um (320, y) em outro em (x,320)
                             print('entrou')
                             explosion1 = Explosion(  # pra centralizar
-                                enemy[0].rect.center, type='1', color=self.color)
+                                (320, enemy[0].rect.center[1]), type='1', color=self.color)
                             explosion2 = Explosion(
-                                enemy[0].rect.center, type='2', color=self.color)
+                                (enemy[0].rect.center[0], 320), type='2', color=self.color)
                             self.explosions.append([explosion1, pygame.sprite.RenderPlain(
                                 explosion1)])
                             self.explosions.append([explosion2, pygame.sprite.RenderPlain(
@@ -252,7 +259,7 @@ class Game:
                 if plyr_collision and self.colcounter <= 0 and self.player not in explosion[0].hits:
                     self.player.got_hit()
                     self.colcounter = 60
-                    explosion[0].hits.append(self.player)
+                    # explosion[0].hits.append(self.player)
                 if explosion[0].count > explosion[0].duration:
                     self.explosions.remove(explosion)
         for shoot in self.enemy_shoots:
@@ -289,13 +296,13 @@ class Game:
         self.enemy_shoots.clear()
 
     def loop(self):
-        """ Main game loop
+        """ Loop principal do jogo
         """
-        clock = pygame.time.Clock()  # creates the clock object
-        dt = 16  # defines the effective speed of the game
+        clock = pygame.time.Clock()  # cria o relógio do jogo
+        dt = 16  # define a efetiva velocidade do jogo
         self.player = Player([320, 540], 4)
         self.elements['player'] = pygame.sprite.RenderPlain(
-            self.player)  # prepares the spaceship sprite
+            self.player)  # prepara o sprite do Player
         self.start_music("LevelTheme.ogg")
         while self.run:
             clock.tick(1000 / dt)
@@ -306,9 +313,10 @@ class Game:
             self.player.explode(event, self.explosions)
             self.handle_events(event, dt)
             self.handle_collision()
-            self.spawn()
-            # Handles the position and colision updates
-            self.update_elements(dt)
+            if self.start:
+                self.spawn()
+                # Handles the position and colision updates
+                self.update_elements(dt)
 
             # Draw the elements on their new positions. Right now only works for the background
             # The elements are drawn on the backbuffer, which is later on flipped to become the frontbuffer
@@ -428,16 +436,16 @@ class Player(Spaceship):
             if key == K_SPACE:
                 if self.bombs > 0:
                     explosion1 = Explosion(
-                        self.rect.center, type='1', color='R', hits=[self])
+                        (320, self.rect.center[1]), type='1', color='R', hits=[self])
                     explosion2 = Explosion(
-                        self.rect.center, type='2', color='R', hits=[self])
+                        (self.rect.center[0], 320), type='2', color='R', hits=[self])
                     explosions.append(
                         [explosion1, pygame.sprite.RenderPlain(explosion1)])
                     explosions.append(
                         [explosion2, pygame.sprite.RenderPlain(explosion2)])
                     self.bombs -= 1
 
-    def normalize_vel(self):
+    def normalize_vel(self):  # função usada para lidar com a movimentação
         abs_vel = (self.vel[0]**2+self.vel[1]**2)**.5
         if abs_vel > self.max_vel:
             self.vel = (self.vel[0]/abs_vel*self.max_vel,

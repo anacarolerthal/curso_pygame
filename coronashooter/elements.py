@@ -285,7 +285,7 @@ class Explosion(ElementSprite):
         # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
         self.count = 0
         self.hits = hits
-        self.duration = 100
+        self.duration = 50
         super().__init__(self.image, self.position, self.speed, direction=self.direction)
 
         # define ângulação
