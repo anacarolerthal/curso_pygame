@@ -53,8 +53,8 @@ class ElementSprite(pygame.sprite.Sprite):
         if (self.rect.left > self.area.right) or \
                 (self.rect.top > self.area.bottom) or \
                 (self.rect.right < 0):
-            return True
             self.kill()
+            return True
         if (self.rect.bottom < - 40):
             self.kill()
             return True
@@ -188,6 +188,7 @@ class Enemy(Spaceship):
         image = f"inimigo1{color}.png" if not image else image
         super().__init__(position, lives, speed, image, size)
         self.isdead = False
+        self.shield = False
 
     def got_hit(self):
         self.lives -= 1
@@ -219,7 +220,7 @@ class Spider(Enemy):
         image = f"inimigo1{color}.png" if not image else image
         super().__init__(position, lives, speed, image, size)
 
-    def update(self, dt, playerposx, lst=None):
+    def update(self, dt, playerposx, enemies, lst=None):
         """ Updates the position of the element
         :param dt: time variation
         :type dt: float (?)
@@ -255,7 +256,7 @@ class Shooter(Enemy):
         self.shtcounter = 0
         self.color = color
 
-    def update(self, dt, playerposx, lst=None):
+    def update(self, dt, playerposx, enemies, lst=None):
         """ Updates the position of the element
         :param dt: time variation
         :type dt: float (?)
@@ -323,10 +324,14 @@ class Shield(Enemy):
         self.enemy = None
         self.enemyposx = 0
         self.enemyposy = 0
+        self.shield = True
 
     def choose_rand_enemy(self, enemylist):
         if len(enemylist) > 0:
-            self.enemy = random.choice(enemylist)[0]
+            enemy = random.choice(enemylist)[0]
+            if not enemy.shield and self.rect.center[1]>enemy.rect.center[1]:
+                self.enemy = enemy
+                self.enemy.shield = True
         else:
             self.enemy = None
             #self.enemyposx = rand_enemy.get_pos_enemy()[0]
@@ -335,7 +340,7 @@ class Shield(Enemy):
             #self.enemyposx = self.rect.center[0]
             #self.enemyposy = 640
 
-    def update(self, dt, playerposx, enemylist):
+    def update(self, dt, playerposx, enemylist, lst=None):
         """ Updates the position of the element 
         :param dt: time variation
         :type dt: float (?)
@@ -354,16 +359,24 @@ class Shield(Enemy):
                 self.enemyposy = self.enemy.get_pos_enemy()[1]
 
         pos_y = self.rect.center[1]
-        if self.enemyposx - self.rect.center[0] > 0:
-            pos_x = self.rect.center[0] + 1 * self.speed*dt/4
-        elif self.enemyposx - self.rect.center[0] < 0:
-            pos_x = self.rect.center[0] - 1 * self.speed*dt/4
+        
+        
+        if self.enemyposx - self.rect.center[0] > 5:
+            pos_x = self.rect.center[0] + 1 * self.speed*dt
+        elif self.enemyposx - self.rect.center[0] < -5:
+            pos_x = self.rect.center[0] - 1 * self.speed*dt
         else:
             pos_x = self.enemyposx
         # baixo -> diferença negativa
         #  talvez seja uma boa mudar esse 50 pra ver onde o escudo para
-        if abs(self.enemyposy - self.rect.center[1]) < 50:
+        if (self.rect.center[1] - self.enemyposy) < 50:
             pos_y += self.direction[1] * self.speed * \
+                dt  # se não estiver 50 pixels abaixo
+        elif (self.rect.center[1] - self.enemyposy) > 200:
+            pos_y -= self.direction[1] * self.speed * \
+                dt  # se não estiver 50 pixels abaixo
+        elif (self.rect.center[1] - self.enemyposy) > 50:
+            pos_y -= self.direction[1] * self.speed * \
                 dt  # se não estiver 50 pixels abaixo
         self.rect.center = (pos_x, pos_y)
         self.check_borders()  # also, nao quer dar uma pausa nao? pra almoçar?

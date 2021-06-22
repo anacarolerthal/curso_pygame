@@ -66,10 +66,10 @@ class Game:
         # ok daí.se tiver inimigo na lista ele pega as posições dele. se n tiver essa variavel n existe acho que porai
         self.background.update(dt)
         for enemy in self.enemies:
-            enemy[0].update(dt, self.player.rect.center[0], self.enemy_shoots)
-        for shield in self.shields:
-            shield[0].update(dt, self.player.rect.center[0],
-                             self.enemies)
+            enemy[0].update(dt, self.player.rect.center[0], self.enemies, self.enemy_shoots)
+        # for shield in self.shields:
+        #     shield[0].update(dt, self.player.rect.center[0],
+        #                      self.enemies)
         for shoot in self.shoots:  # é teria que ser um inimigo aleatorio
             shoot[0].update(dt)  # dai self.enemy.rect.center[0] e [1]
         for shoot in self.enemy_shoots:  # puede serrrr!!!
@@ -127,7 +127,7 @@ class Game:
                 self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
             if enemy_type == 2:
                 enemy = Shield([pos_x, 0], color=self.color)
-                self.shields.append([enemy, pygame.sprite.RenderPlain(enemy)])
+                self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
             self.enemy_counter = 0
         else:
             self.enemy_counter += 1
@@ -142,14 +142,14 @@ class Game:
             self.power_up_counter += 1
 
     def handle_collision(self):
-        for enemy in self.enemies + self.shields:
+        for enemy in self.enemies:
             plyr_collision = self.player.rect.colliderect(enemy[0].rect)
             if plyr_collision and self.colcounter <= 0:
                 print('ui')
                 self.player.got_hit()
                 enemy[0].got_hit()
                 if enemy[0].get_lives() <= 0:
-                    if enemy in self.enemies + self.shields:
+                    if enemy in self.enemies:
                         self.enemies.remove(enemy)
                 self.colcounter = 60
             for shoot in self.shoots:
