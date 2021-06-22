@@ -13,6 +13,19 @@ from elements import *
 import random
 import time
 
+_sound_library = {}  # Biblioteca de efeitos sonoros
+
+
+def play_sound(path):  # Função que toca os efeitos sonoros
+    global _sound_library
+    sound = _sound_library.get(path)
+    if sound == None:
+        # Corrige path para qualquer OS
+        correctpath = os.path.join('songs', path)
+        sound = pygame.mixer.Sound(correctpath)
+        _sound_library[path] = sound
+    sound.play()
+
 
 class Game:
     def __init__(self, size=(640, 640), fullscreen=False):
@@ -102,6 +115,8 @@ class Game:
             shield[1].draw(self.screen)
         for power_up in self.power_ups:
             power_up[1].draw(self.screen)
+        if self.player.shield:
+            self.player.shield[1].draw(self.screen)
 
     def handle_events(self, event, dt=1000):
         """ Handles each event in the event queue.
@@ -160,7 +175,7 @@ class Game:
             self.enemy_counter += 1
         if self.power_up_counter > 180:
             pos_x = random.randint(0, 640)
-            pwup_type = random.randint(1, 2)
+            pwup_type = random.randint(1, 4)
             power_up = PowerUp([pos_x, -25], power=pwup_type)
             self.power_ups.append(
                 [power_up, pygame.sprite.RenderPlain(power_up)])
@@ -187,6 +202,9 @@ class Game:
                     if enemy[0].get_lives() <= 0:
                         if enemy in self.enemies:
                             self.enemies.remove(enemy)
+                            death_drop = enemy.die()
+                            if not death_drop:
+                                self.shoots.append(death_drop)
                     self.shoots.remove(shoot)
         for shoot in self.enemy_shoots:
             plyr_collision = self.player.rect.colliderect(shoot[0].rect)
@@ -262,6 +280,7 @@ class Player(Spaceship):
         self.bombs = 0
         self.size = new_size
         self.power_ups = [False, False, False, False]
+        self.shield = None
         self.spd_counter = 0
         self.sht_counter = 0
         self.isdead = False
@@ -329,10 +348,14 @@ class Player(Spaceship):
         if self.power_ups[1]:
             self.sht_counter += 1
 
+        if self.shield:
+            self.shield[0].update(dt)
+
     def shoot(self, event, shoots):
         if event.type in (KEYDOWN,):
             key = event.key
             if key == K_LCTRL:
+                play_sound("PlayerShoot.ogg")
                 if not self.power_ups[1]:
                     laser = Laser((self.rect.center[0], self.rect.top))
                     shoots.append([laser, pygame.sprite.RenderPlain(laser)])
@@ -359,15 +382,19 @@ class Player(Spaceship):
                         self.vel[1]/abs_vel*self.max_vel)
 
     def got_hit(self):
-        self.lives -= 1
+        if self.shield:
+            self.power_ups[3] = False
+            self.shield = None
+        else:
+            self.lives -= 1
         if self.lives <= 0:
             print(self.score)
             self.isdead = True
 
-    def get_pos(self):  # é isto então
+    def get_pos(self):
         return (self.rect.center[0], self.rect.center[1])
 
-    def get_score(self):  # cuidado com o player pse perigoso elekkkkkkkkkkkkkkkkkmedo
+    def get_score(self):
         return self.score
 
     def set_score(self, score):
@@ -375,7 +402,6 @@ class Player(Spaceship):
         print(self.score)
 
     def set_power_up(self, power_up):
-        self.power_ups[power_up - 1] = True  # Array começa em 0
         if power_up == 1:
             self.spd_counter = 0
         elif power_up == 2:
@@ -383,6 +409,12 @@ class Player(Spaceship):
         elif power_up == 3:
             if self.bombs < 3:
                 self.bombs = 3
+        elif power_up == 4 and not self.power_ups[3]:
+            shield = ShieldPowerUp(
+                (self.rect.center[0], self.rect.center[1]), player=self)
+            self.shield = [shield, pygame.sprite.RenderPlain(shield)]
+
+        self.power_ups[power_up - 1] = True  # Array começa em 0
 
     def add_score(self):
         self.score += 1

@@ -2,6 +2,8 @@ import pygame
 import os
 from math import ceil
 
+# Módulo utilizado integralmente do Curso Pygame original
+
 
 class Background:
     """ Cria o background do jogo
@@ -31,7 +33,7 @@ class Background:
             self.imagesize[1]
         back = pygame.Surface((w, h))
 
-        # blit many copies of the background so it fills the whole back of the screen
+        # blit de várias cópias do background para preencher a tela
         for i in range((back.get_size()[0] // self.imagesize[0])):
             for j in range((back.get_size()[1] // self.imagesize[1])):
                 back.blit(
@@ -40,17 +42,17 @@ class Background:
         self.image = back
 
     def update(self, dt):
-        """ Moves the background
-        :param dt: unused
-        :type dt: float (?)
+        """ Move o background
+        :param dt: variação do tempo
+        :type dt: int
         """
         self.pos[1] += 1
         if self.pos[1] > 0:
             self.pos[1] -= self.imagesize[1]
 
     def draw(self, screen):
-        """ Draw it's image on the given screen
-        :param screen: screen to be drawn on
+        """ Desenha a imagem na tela definida
+        :param screen: tela em que será colocada a imagem
         :type screen: pygame.screen
         """
         screen.blit(self.image, self.pos)
