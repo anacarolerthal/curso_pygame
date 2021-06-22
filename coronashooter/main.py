@@ -6,7 +6,7 @@ from pygame.locals import (DOUBLEBUF,
                            K_LEFT,
                            K_RIGHT,
                            QUIT,
-                           K_ESCAPE, K_UP, K_DOWN, K_RCTRL, K_LCTRL
+                           K_ESCAPE, K_UP, K_DOWN, K_RCTRL, K_LCTRL, K_SPACE
                            )
 from background import Background
 from elements import *
@@ -33,6 +33,11 @@ class Game:
         self.power_up_counter = 0
         self.colcounter = 0
         self.color = 'G'
+        self.color_list = ['G', 'Y', 'R', 'B', 'P']
+        self.level = 0  # essa linha já existia
+        self.waves = [{"spider": 1, "shooter": 0, "bomb": 0, "shield": 0}, {"spider": 1, "shooter": 1, "bomb": 0, "shield": 0}, {
+            "spider": 1, "shooter": 1, "bomb": 0, "shield": 1}, {"spider": 1, "shooter": 1, "bomb": 0, "shield": 1}]
+        self.set_current_wave()
         pygame.init()  # Initiates the pygame module
         flags = DOUBLEBUF | FULLSCREEN if fullscreen else DOUBLEBUF  # sets the display flags
         # creates the display with the set size and flags
@@ -43,7 +48,6 @@ class Game:
         pygame.display.set_caption('PC Virus Shooter')
         pygame.mouse.set_visible(0)  # makes mouse cursor invisible
         self.run = True
-        self.level = 1
         self.loop()  # starts running the game
     # entao define enemyposy pra 640 dai ele vai pra baixo
     # e enemyposx pro x do player, dai ele vira uma aranha basically
@@ -66,7 +70,8 @@ class Game:
         # ok daí.se tiver inimigo na lista ele pega as posições dele. se n tiver essa variavel n existe acho que porai
         self.background.update(dt)
         for enemy in self.enemies:
-            enemy[0].update(dt, self.player.rect.center[0], self.enemies, self.enemy_shoots)
+            enemy[0].update(dt, self.player.rect.center[0],
+                            self.enemies, self.enemy_shoots)
         # for shield in self.shields:
         #     shield[0].update(dt, self.player.rect.center[0],
         #                      self.enemies)
@@ -112,22 +117,44 @@ class Game:
                 self.run = False
 
         # if self.player.score == 5:
-        #    self.player.score += 5
-        #    self.level_changer('R')
+        #     self.change_music("TrojanTheme.ogg")
+        #     self.player.score += 5
+        #     self.level_changer('R')
+
+        if self.player.score == self.level*10 + 10:
+            self.level_changer()
+
+    def set_current_wave(self):
+        new_current_wave = []
+        for enemy in self.waves[self.level]:
+            for i in range(self.waves[self.level][enemy]):
+                new_current_wave.append(enemy)
+        self.current_wave = new_current_wave
+
+    def start_music(self, music):
+        pygame.mixer.init()
+        song = os.path.join('songs', music)
+        pygame.mixer.music.load(song)
+        pygame.mixer.music.play(-1)
+
+    def change_music(self, music):
+        pygame.mixer.music.stop()
+        song = os.path.join('songs', music)
+        pygame.mixer.music.load(song)
+        pygame.mixer.music.play(-1)
 
     def spawn(self):
         if self.enemy_counter > 75:
             pos_x = random.randint(0, 640)
-            enemy_type = random.randint(0, 2)
-            if enemy_type in (0, 1):
-                if enemy_type == 0:
-                    enemy = Shooter([pos_x, -25], color=self.color)
-                elif enemy_type == 1:
-                    enemy = Spider([pos_x, -25], color=self.color)
-                self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
-            if enemy_type == 2:
+            enemy_n = random.randint(0, len(self.current_wave)-1)
+            enemy_type = self.current_wave[enemy_n]
+            if enemy_type == "spider":
+                enemy = Spider([pos_x, -25], color=self.color)
+            elif enemy_type == "shooter":
+                enemy = Shooter([pos_x, -25], color=self.color)
+            elif enemy_type == "shield":
                 enemy = Shield([pos_x, 0], color=self.color)
-                self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
+            self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
             self.enemy_counter = 0
         else:
             self.enemy_counter += 1
@@ -185,8 +212,10 @@ class Game:
                 if entity[0].check_borders():
                     lst.remove(entity)
 
-    def level_changer(self, color):
-        self.color = color
+    def level_changer(self):
+        self.level += 1
+        self.color = self.color_list[self.level]
+        self.set_current_wave()
         self.background = Background(f'fundo{self.color}.png')
         self.enemies.clear()
         self.enemy_shoots.clear()
@@ -199,6 +228,7 @@ class Game:
         self.player = Player([320, 540], 3)
         self.elements['player'] = pygame.sprite.RenderPlain(
             self.player)  # prepares the spaceship sprite
+        self.start_music("LevelTheme.ogg")
         while self.run:
             clock.tick(1000 / dt)
             event = pygame.event.poll()
@@ -229,9 +259,11 @@ class Player(Spaceship):
         self.max_vel = .5
         self.acc = (0, 0)
         self.score = 0
+        self.bombs = 0
         self.size = new_size
         self.power_ups = [False, False, False, False]
         self.spd_counter = 0
+        self.sht_counter = 0
         self.isdead = False
 
     def update(self, dt):
@@ -267,7 +299,6 @@ class Player(Spaceship):
         if self.power_ups[0]:
             mtp = 1.3
             self.spd_counter += 1
-            print(mtp)
         else:
             mtp = 1
 
@@ -291,6 +322,13 @@ class Player(Spaceship):
             pos_y = 640
         self.rect.center = (pos_x, pos_y)
 
+        if self.sht_counter > 360:
+            self.power_ups[1] = False
+            self.sht_counter = 0
+
+        if self.power_ups[1]:
+            self.sht_counter += 1
+
     def shoot(self, event, shoots):
         if event.type in (KEYDOWN,):
             key = event.key
@@ -308,6 +346,11 @@ class Player(Spaceship):
                         laser2)], [laser3, pygame.sprite.RenderPlain(laser3)]]  # Cria três lasers
                     for laser in lst:
                         shoots.append(laser)
+            elif key == K_SPACE:
+                if self.bombs > 0:
+                    laser = Laser((self.rect.center[0], self.rect.top))
+                    shoots.append([laser, pygame.sprite.RenderPlain(laser)])
+                    self.bombs -= 1
 
     def normalize_vel(self):
         abs_vel = (self.vel[0]**2+self.vel[1]**2)**.5
@@ -333,8 +376,13 @@ class Player(Spaceship):
 
     def set_power_up(self, power_up):
         self.power_ups[power_up - 1] = True  # Array começa em 0
-        if self.power_ups[0]:
+        if power_up == 1:
             self.spd_counter = 0
+        elif power_up == 2:
+            self.sht_counter = 0
+        elif power_up == 3:
+            if self.bombs < 3:
+                self.bombs = 3
 
     def add_score(self):
         self.score += 1
