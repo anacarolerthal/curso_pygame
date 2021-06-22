@@ -66,7 +66,8 @@ class Game:
         # ok daí.se tiver inimigo na lista ele pega as posições dele. se n tiver essa variavel n existe acho que porai
         self.background.update(dt)
         for enemy in self.enemies:
-            enemy[0].update(dt, self.player.rect.center[0], self.enemies, self.enemy_shoots)
+            enemy[0].update(dt, self.player.rect.center[0],
+                            self.enemies, self.enemy_shoots)
         # for shield in self.shields:
         #     shield[0].update(dt, self.player.rect.center[0],
         #                      self.enemies)
@@ -119,15 +120,13 @@ class Game:
         if self.enemy_counter > 75:
             pos_x = random.randint(0, 640)
             enemy_type = random.randint(0, 2)
-            if enemy_type in (0, 1):
-                if enemy_type == 0:
-                    enemy = Shooter([pos_x, -25], color=self.color)
-                elif enemy_type == 1:
-                    enemy = Spider([pos_x, -25], color=self.color)
-                self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
-            if enemy_type == 2:
+            if enemy_type == 0:
+                enemy = Shooter([pos_x, -25], color=self.color)
+            elif enemy_type == 1:
+                enemy = Spider([pos_x, -25], color=self.color)
+            elif enemy_type == 2:
                 enemy = Shield([pos_x, 0], color=self.color)
-                self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
+            self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
             self.enemy_counter = 0
         else:
             self.enemy_counter += 1
@@ -232,6 +231,7 @@ class Player(Spaceship):
         self.size = new_size
         self.power_ups = [False, False, False, False]
         self.spd_counter = 0
+        self.sht_counter = 0
         self.isdead = False
 
     def update(self, dt):
@@ -267,7 +267,6 @@ class Player(Spaceship):
         if self.power_ups[0]:
             mtp = 1.3
             self.spd_counter += 1
-            print(mtp)
         else:
             mtp = 1
 
@@ -290,6 +289,13 @@ class Player(Spaceship):
         elif pos_y > 640:
             pos_y = 640
         self.rect.center = (pos_x, pos_y)
+
+        if self.sht_counter > 360:
+            self.power_ups[1] = False
+            self.sht_counter = 0
+
+        if self.power_ups[1]:
+            self.sht_counter += 1
 
     def shoot(self, event, shoots):
         if event.type in (KEYDOWN,):
@@ -333,8 +339,10 @@ class Player(Spaceship):
 
     def set_power_up(self, power_up):
         self.power_ups[power_up - 1] = True  # Array começa em 0
-        if self.power_ups[0]:
+        if power_up == 1:
             self.spd_counter = 0
+        elif power_up == 2:
+            self.sht_counter = 0
 
     def add_score(self):
         self.score += 1
