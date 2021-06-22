@@ -12,11 +12,16 @@ from background import Background
 from elements import *
 import random
 import time
+import os
 
 _sound_library = {}  # Biblioteca de efeitos sonoros
 
 
-def play_sound(path):  # Função que toca os efeitos sonor
+def play_sound(path):  # Função que toca os efeitos sonoros
+    """Função que toca efeitos sonoros presentes na pasta /songs
+        param path: nome do arquivo do efeito sonoro
+        type path: string
+    """
     global _sound_library
     sound = _sound_library.get(path)
     if sound == None:
@@ -29,72 +34,69 @@ def play_sound(path):  # Função que toca os efeitos sonor
 
 class Game:
     def __init__(self, size=(640, 640), fullscreen=False):
-        """ Creates the object that will control the game
+        """ Cria o objeto que irá controlar o jogo
 
         :param size: desired size of the screen
         :type size: tuple
         :param fullscreen: whether the game will be played on fullscreen or not
         :type fullscreen: boolean
-        """  # getpos is not defined. getpos(self.enemies) n achei isso.
-        self.elements = {}  # creates the dict which will have all elements of the game
-        self.enemies = []
-        self.shields = []
-        self.shoots = []
-        self.enemy_shoots = []
-        self.power_ups = []
-        self.enemy_counter = 45
-        self.power_up_counter = 0
+        """
+        self.elements = {}  # cria o dicionario com todas os elementos do jogo
+        self.enemies = []  # cria a lista de todos os inimigos
+        self.shoots = []  # cria a lista com os projecteis do jogador
+        self.enemy_shoots = []  # cria a lista com todos os projecteis inimigos
+        self.power_ups = []  # cria a lista de power-ups
+        self.explosions = []
+        self.enemy_counter = 45  # contador usado para a lógica de spawn de inimigos
+        self.power_up_counter = 0  # contador usado para a lógica de spawn de power-ups
+        # timer de colisão para que o jogador não tome dano várias vezes de uma mesma colisão
         self.colcounter = 0
-        self.color = 'G'
+        self.color = 'G'  # define a cor dos elementos da primeira fase
+        # lista de cores de cada fase
         self.color_list = ['G', 'Y', 'R', 'B', 'P']
-        self.level = 0  # essa linha já existia
-        self.waves = [{"spider": 1, "shooter": 0, "bomb": 0, "shield": 0}, {"spider": 1, "shooter": 1, "bomb": 0, "shield": 0}, {
+        self.level = 0  # define a fase inicial
+        self.waves = [{"spider": 0, "shooter": 0, "bomb": 1, "shield": 0}, {"spider": 0, "shooter": 0, "bomb": 1, "shield": 0}, {
             "spider": 1, "shooter": 1, "bomb": 0, "shield": 1}, {"spider": 1, "shooter": 1, "bomb": 0, "shield": 1}]
         self.set_current_wave()
-        pygame.init()  # Initiates the pygame module
-        flags = DOUBLEBUF | FULLSCREEN if fullscreen else DOUBLEBUF  # sets the display flags
-        # creates the display with the set size and flags
+        pygame.init()  # inicia o módulo pygame
+        # seta as flags de renderização
+        flags = DOUBLEBUF | FULLSCREEN if fullscreen else DOUBLEBUF
+        # cria o display
         self.screen = pygame.display.set_mode(size, flags)
-        # creates the background object
+        # cria o plano de fundo
         self.background = Background(f'fundo{self.color}.png')
-        # sets the game's window title
+        # seta o titulo da janela
         pygame.display.set_caption('PC Virus Shooter')
-        pygame.mouse.set_visible(0)  # makes mouse cursor invisible
+        pygame.mouse.set_visible(0)  # deixa o cursor do mouse invisivel
+        self.font = pygame.font.Font(os.path.join("fonts", 'Pixels.ttf'), 72)
+        self.font_love = pygame.font.Font(
+            os.path.join("fonts", 'pixel-love.ttf'), 48)  # configura a fonte para displays
         self.run = True
-        self.loop()  # starts running the game
+        self.loop()  # roda o jogo
 
     def update_elements(self, dt):
-        """ Updates the background so it feels like moving
+        """ Atualiza diversos aspectos do jogo
 
         :param dt: unused
         :type dt: float (?)
         """
 
-        # if tester == 1:
-        #    enemyposx = enemypos[0]
-        #    enemyposy = enemypos[1]
-
-        # a gnt ja consegue botar no enemy update?
-        # ok daí.se tiver inimigo na lista ele pega as posições dele. se n tiver essa variavel n existe acho que porai
         self.background.update(dt)
         for enemy in self.enemies:
             enemy[0].update(dt, self.player.rect.center[0],
                             self.enemies, self.enemy_shoots)
-        # for shield in self.shields:
-        #     shield[0].update(dt, self.player.rect.center[0],
-        #                      self.enemies)
-        for shoot in self.shoots:  # é teria que ser um inimigo aleatorio
-            shoot[0].update(dt)  # dai self.enemy.rect.center[0] e [1]
-        for shoot in self.enemy_shoots:  # puede serrrr!!!
-            # ok e se a gente fizer uma lista de listas/tuplas? que é tipo
-            # é dentro desse update q a gnt vai criar? n ne? no init acho
+        for shoot in self.shoots:
             shoot[0].update(dt)
-        # [[x,y],[x,y],[x,y]] ok passo 1 criar uma lista com todos os get_pos
+        for shoot in self.enemy_shoots:
+            shoot[0].update(dt)
         for power_up in self.power_ups:  # nao faço a minima ideia
             power_up[0].update(dt)
 
+        for explosion in self.explosions:
+            explosion[0].update(dt)
+
     def draw_elements(self):
-        """ Draws the elements onto the screen.
+        """ Desenha elementos na tela
         This is done by passing the screen as a parameter to the element that will draw itself on the screen.
         """
         self.background.draw(self.screen)  # draw the background
@@ -106,10 +108,10 @@ class Game:
             shoot[1].draw(self.screen)
         for shoot in self.enemy_shoots:
             shoot[1].draw(self.screen)
-        for shield in self.shields:
-            shield[1].draw(self.screen)
         for power_up in self.power_ups:
             power_up[1].draw(self.screen)
+        for explosion in self.explosions:
+            explosion[1].draw(self.screen)
         if self.player.shield:
             self.player.shield[1].draw(self.screen)
 
@@ -133,6 +135,8 @@ class Game:
 
         if self.player.score == self.level*10 + 10:
             self.level_changer()
+            enemy = BossShield((320, 10), color=self.color)
+            self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
 
     def set_current_wave(self):
         new_current_wave = []
@@ -153,6 +157,14 @@ class Game:
         pygame.mixer.music.load(song)
         pygame.mixer.music.play(-1)
 
+    def update_interface(self):
+        scoretext = self.font.render(
+            "Score = "+str(self.player.get_score()), 1, (0, 0, 0))
+        self.screen.blit(scoretext, (15, 570))
+        lifestext = self.font_love.render(
+            "@"*self.player.get_lives(), 1, (0, 0, 0))
+        self.screen.blit(lifestext, (10, 540))
+
     def spawn(self):
         if self.enemy_counter > 75:
             pos_x = random.randint(0, 640)
@@ -162,6 +174,8 @@ class Game:
                 enemy = Spider([pos_x, -25], color=self.color)
             elif enemy_type == "shooter":
                 enemy = Shooter([pos_x, -25], color=self.color)
+            elif enemy_type == "bomb":
+                enemy = Bomb([pos_x, -25], color=self.color)
             elif enemy_type == "shield":
                 enemy = Shield([pos_x, 0], color=self.color)
             self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
@@ -193,11 +207,54 @@ class Game:
                 enemy_collision = enemy[0].rect.colliderect(shoot[0].rect)
                 if enemy_collision:
                     enemy[0].got_hit()
-                    self.player.add_score()
                     if enemy[0].get_lives() <= 0:
+                        self.player.add_score()
+                        if enemy[0].get_id() == "bomb":
+                            # tinha que colocar um (320, y) em outro em (x,320)
+                            print('entrou')
+                            explosion1 = Explosion(  # pra centralizar
+                                enemy[0].rect.center, type='1', color=self.color)
+                            explosion2 = Explosion(
+                                enemy[0].rect.center, type='2', color=self.color)
+                            self.explosions.append([explosion1, pygame.sprite.RenderPlain(
+                                explosion1)])
+                            self.explosions.append([explosion2, pygame.sprite.RenderPlain(
+                                explosion2)])
                         if enemy in self.enemies:
                             self.enemies.remove(enemy)
                     self.shoots.remove(shoot)
+            # Explosions:
+            for explosion in self.explosions:
+                # explosion hits enemy?
+                enemy_collision = enemy[0].rect.colliderect(
+                    explosion[0].rect)
+                if enemy_collision and enemy[0] not in explosion[0].hits:
+                    enemy[0].got_hit()
+                    if enemy[0].get_lives() <= 0:
+                        self.player.add_score()
+                        if enemy[0].get_id() == "bomb":
+                            # tinha que colocar um (320, y) em outro em (x,320)
+                            print('entrou')
+                            explosion1 = Explosion(  # pra centralizar
+                                enemy[0].rect.center, type='1', color=self.color)
+                            explosion2 = Explosion(
+                                enemy[0].rect.center, type='2', color=self.color)
+                            self.explosions.append([explosion1, pygame.sprite.RenderPlain(
+                                explosion1)])
+                            self.explosions.append([explosion2, pygame.sprite.RenderPlain(
+                                explosion2)])
+                        if enemy in self.enemies:
+                            self.enemies.remove(enemy)
+                    explosion[0].hits.append(enemy[0])
+                # explosion hits player?
+                plyr_collision = self.player.rect.colliderect(
+                    explosion[0].rect)
+                if plyr_collision and self.colcounter <= 0 and self.player not in explosion[0].hits:
+                    self.player.got_hit()
+                    self.colcounter = 60
+                    explosion[0].hits.append(self.player)
+                if explosion[0].count > explosion[0].duration:
+                    self.explosions.remove(explosion)
         for shoot in self.enemy_shoots:
             plyr_collision = self.player.rect.colliderect(shoot[0].rect)
             if plyr_collision and self.colcounter <= 0:
@@ -205,6 +262,7 @@ class Game:
                 self.player.got_hit()
                 self.enemy_shoots.remove(shoot)
                 self.colcounter = 60
+
         if self.colcounter > 0:
             self.colcounter -= 1
 
@@ -235,7 +293,7 @@ class Game:
         """
         clock = pygame.time.Clock()  # creates the clock object
         dt = 16  # defines the effective speed of the game
-        self.player = Player([320, 540], 3)
+        self.player = Player([320, 540], 4)
         self.elements['player'] = pygame.sprite.RenderPlain(
             self.player)  # prepares the spaceship sprite
         self.start_music("LevelTheme.ogg")
@@ -245,6 +303,7 @@ class Game:
             # Handles the user interaction
             self.player.update(dt)
             self.player.shoot(event, self.shoots)
+            self.player.explode(event, self.explosions)
             self.handle_events(event, dt)
             self.handle_collision()
             self.spawn()
@@ -255,6 +314,7 @@ class Game:
             # The elements are drawn on the backbuffer, which is later on flipped to become the frontbuffer
             self.draw_elements()
             self.garbage_collector()
+            self.update_interface()
             pygame.display.flip()
         pygame.quit()  # kill the program
 
@@ -269,7 +329,7 @@ class Player(Spaceship):
         self.max_vel = .5
         self.acc = (0, 0)
         self.score = 0
-        self.bombs = 0
+        self.bombs = 50
         self.size = new_size
         self.power_ups = [False, False, False, False]
         self.shield = None
@@ -361,10 +421,20 @@ class Player(Spaceship):
                         laser2)], [laser3, pygame.sprite.RenderPlain(laser3)]]  # Cria três lasers
                     for laser in lst:
                         shoots.append(laser)
-            elif key == K_SPACE:
+
+    def explode(self, event, explosions):
+        if event.type in (KEYDOWN,):
+            key = event.key
+            if key == K_SPACE:
                 if self.bombs > 0:
-                    laser = Laser((self.rect.center[0], self.rect.top))
-                    shoots.append([laser, pygame.sprite.RenderPlain(laser)])
+                    explosion1 = Explosion(
+                        self.rect.center, type='1', color='R', hits=[self])
+                    explosion2 = Explosion(
+                        self.rect.center, type='2', color='R', hits=[self])
+                    explosions.append(
+                        [explosion1, pygame.sprite.RenderPlain(explosion1)])
+                    explosions.append(
+                        [explosion2, pygame.sprite.RenderPlain(explosion2)])
                     self.bombs -= 1
 
     def normalize_vel(self):

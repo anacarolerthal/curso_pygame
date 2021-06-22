@@ -25,12 +25,12 @@ class ElementSprite(pygame.sprite.Sprite):
     """
 
     def __init__(self, image, position, speed=None, new_size=None, direction=(0, 1)):
-        """ Construtor de elementos
+        """ ElementSprite constructor
         :param image: path e nome da imagem desejada para o sprite
         :type image: string
         :param position: posição inicial do elemento
         :type position: list
-        :param speed: velocidade inicial do elemento
+        :param speed: velocidade inicial do elemento em ambos os eixos. Default None
         :type speed: int
         :param new_size: tamanho desejado para a imagem
         :type new_size: tup
@@ -66,7 +66,7 @@ class ElementSprite(pygame.sprite.Sprite):
         self.check_borders()
 
     def check_borders(self):
-        """ Checa as bordas por elementos e os elimina
+        """ Checa se o eleemnto está fora das bordas da tela, e o elimina se estiver
         """
         if (self.rect.left > self.area.right) or \
                 (self.rect.top > self.area.bottom) or \
@@ -116,95 +116,217 @@ class ElementSprite(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, new_size)
 
     def set_image(self, image, scale):
-        """
+        """ Define a imagem do elemento
+        :param image: Imagem
+        :type image: string
+        :param scale: Escala da imagem
+        :type scale: float
         """
         self.image = pygame.image.load(os.path.join('images', image))
         self.scale(scale)
 
     def rot_center(self, angle):
-        """rotate an image while keeping its center"""
+        """Rotaciona a imagem mantendo seu centro
+        :param angle: Ângulo do elemento
+        :type angle: float
+        """
         self.image = pygame.transform.rotate(self.image, angle)
         self.rect = self.image.get_rect(center=self.rect.center)
 
 
 class ShieldPowerUp(ElementSprite):
+    """ Classe do power up de escudo. Tem herança de ElementSprite
+    """
+
     def __init__(self, position, speed=.6, image=None, direction=(0, -1), player=None, size=(27, 36)):
+        """ ShieldPowerUp constructor
+        :param position: posição inicial do escudo
+        :type position: list
+        :param speed: velocidade inicial do elemento em ambos os eixos
+        :type speed: int
+        :param image: path e nome da imagem desejada para escudo. Default None
+        :type image: string
+        :param direction: direções para movimentação
+        :type direction: tuple
+        :param player: Player. Default None
+        :type player: main.Player
+        """
+
+        # define a imagem padrão
         if not image:
             image = "escudo.png"
+
+        # chama ElementSprite.__init__()
         super().__init__(image, position, speed, direction=direction, new_size=size)
         self.player = player
 
     def update(self, dt):
-        """ Updates the position of the element
-        :param dt: time variation
-        :type dt: float (?)
+        """ Faz update da posição do escudo
+        :param dt: variação de tempo
+        :type dt: int
         """
-        # move_speed = (self.speed * dt / 16,
-        #               self.speed * dt / 16)  # note that dt=16, so dt/16 == 1
         pos_x = self.player.rect.center[0]
         pos_y = self.player.rect.center[1]
         self.rect.center = (pos_x, pos_y)
-        # self.rect = self.rect.move(move_speed)
-        # kills the element if it is out of the screen borders
 
 
 class Spaceship(ElementSprite):
-    """ Classe do elemento controlável.
-    Herda de ElementSprite, (que herda de pygame.sprite.Sprite), para que o pygame possa fazer o que quiser com sprites.
+    """ Classe do elemento controlável, que será utilizada para o player e para os inimigos.
+    Herda de ElementSprite, para que o pygame possa fazer o que quiser com sprites.
     """
 
     def __init__(self, position, lives=0, speed=3.5, image=None, new_size=[83, 248]):
         """ Spaceship constructor
         :param position: a posição inicial do elemento
-        :type position: lista
+        :type position: list
         :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
-        :type lives: inteiro (?)
+        :type lives: int
         :param speed: a velocidade inicial do elemento em ambos os eixos.
-        :type speed: lista
-        :param image: a imagem do elemento. A classe possui um valor padrão que é sobrescrito quando este parâmetro não é "None".
+        :type speed: float
+        :param image: a imagem do elemento. Default None
         :type image: string
         :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
         :type new_size: list
         """
 
-        image = "virus.png" if not image else image  # define a imagem padrão
+        # define a imagem padrão
+        image = "virus.png" if not image else image
+
         # chama ElementSprite.__init__()
         super().__init__(image, position, speed, new_size)
         self.set_lives(lives)  # define as vidas da nave
 
     def get_lives(self):
+        """Retorna a quantidade de vidas do objeto
+        """
         return self.lives
 
     def set_lives(self, lives):
+        """ Define as vidas do objeto
+        :param lives: Vidas
+        :type lives: int
+        """
         self.lives = lives
 
 
 class Laser(ElementSprite):
+    """ Classe do elemento Laser (tiros em geral).
+    Herda de ElementSprite.
+    """
+
     def __init__(self, position, speed=.6, image=None, direction=(0, -1), angle=None):
+        """ Laser constructor
+        :param position: a posição inicial do elemento
+        :type position: list
+        :param speed: a velocidade inicial do elemento em ambos os eixos.
+        :type speed: float
+        :param image: a imagem do elemento. Default None
+        :type image: string
+        :param direction: direções para movimentação
+        :type direction: tuple
+        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
+        :type new_size: list
+        :param angle: Ângulo do elemento. Default None
+        :type angle: float
+        """
+
+        # define a imagem padrão
         if not image:
             image = "tironave1.png"
+
+        # chama ElementSprite.__init__()
         super().__init__(image, position, speed, direction=direction)
 
+        # define ângulação
         if angle:
             self.rot_center(angle)
 
     def update(self, dt):
         """ Atualiza a posição do elemento.
         :param dt: variação do tempo
-        :type dt: float (?)
+        :type dt: int
         """
-        # move_speed = (self.speed * dt / 16,
-        #               self.speed * dt / 16)  # note that dt=16, so dt/16 == 1
+
+        # posição
         pos_x = self.rect.center[0] + self.direction[0] * self.speed*dt
         pos_y = self.rect.center[1] + self.direction[1] * self.speed*dt
         self.rect.center = (pos_x, pos_y)
-        # self.rect = self.rect.move(move_speed)
+
         # mata o elemento se ele estiver fora dos limites da tela
         self.check_borders()
 
 
+class Explosion(ElementSprite):
+    """ Classe do elemento Explosion (sprite de explosão).
+    Herda de ElementSprite.
+    """
+
+    def __init__(self, position, speed=0, image=None, direction=(0, 0), angle=None, type=1, color='G', hits=[]):
+        """ Explosion constructor
+        :param position: a posição inicial do elemento
+        :type position: list
+        :param speed: a velocidade inicial do elemento em ambos os eixos.
+        :type speed: float
+        :param image: a imagem do elemento. Default None
+        :type image: string
+        :param direction: direções para movimentação
+        :type direction: tuple
+        :param angle: ângulo do elemento. Default None
+        :type angle: float
+        :param color: cor do sprite, utilizado para escolher a imagem
+        :type color: string
+        """
+        # define a imagem padrão
+        if not image:
+            self.image = f"laser{type}{color}.png"
+        self.position = position
+        self.speed = speed
+        self.direction = direction
+        # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
+        self.count = 0
+        self.hits = hits
+        self.duration = 100
+        super().__init__(self.image, self.position, self.speed, direction=self.direction)
+
+        # define ângulação
+        if angle:
+            self.rot_center(angle)
+
+    def update(self, dt):
+        """ Atualiza a posição do elemento.
+        :param dt: variação do tempo
+        :type dt: int
+        """
+        self.count += 1
+        # if self.count == 1:
+        if self.count > self.duration:
+            self.kill()
+
+
 class PowerUp(ElementSprite):
+    """ Classe do elemento PowerUp
+    Herda de ElementSprite.
+    """
+
     def __init__(self, position, speed=.4, image=None, direction=(0, 1), kind='speed', power=None, size=(40, 40)):
+        """ PowerUp constructor
+        :param position: a posição inicial do elemento
+        :type position: list
+        :param speed: a velocidade inicial do elemento em ambos os eixos.
+        :type speed: float
+        :param image: a imagem do elemento. Default None
+        :type image: string
+        :param direction: direções para movimentação
+        :type direction: tuple
+        :param kind: tipo de power up
+        :type kind: string
+        :param power: número relacionado ao tipo de power up
+        :type power: int. Default None
+        :param size: tamanho do powerup
+        :type size: tuple
+        """
+
+        # define o tipo do power up
         self.kind = kind.lower()
         if not power:
             if self.kind == 'speed':
@@ -219,106 +341,168 @@ class PowerUp(ElementSprite):
                 self.kill()
         else:
             self.power = power
+
+        # define a imagem padrão
         if not image:
             image = f"powerup{self.power}.png"
+
+        # chama ElementSprite.__init__()
         super().__init__(image, position, speed, direction=direction, new_size=size)
 
     def get_power(self):
+        """Retorna o powerup setado
+        """
         return self.power
 
 
 class Enemy(Spaceship):
+    """ Classe de todos os inimigos do jogo
+    Herda de Spaceship.
+    """
+
     def __init__(self, position, lives=0, speed=.35, image=None, size=(75, 50), color='G'):
-        """  construtor. Basicamente o mesmo que Spaceship.__init__(), sendo a única diferença o valor padrão para a imagem
-        :param position: a posição inicial do elemento.
-        :type position: lista
-        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
-        :type lives: inteiro (?)
+        """Enemy construtor. Basicamente o mesmo que Spaceship.__init__(), sendo a única diferença o valor padrão para a imagem
+        :param position: a posição inicial do inimigo.
+        :type position: list
+        :param lives: vidas do inimigo
+        :type lives: int
         :param speed: a velocidade inicial do elemento em ambos os eixos
-        :type speed: lista
-        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
+        :type speed: float
+        :param image: a imagem do elemento. Default None
         :type image: string
-        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
-        :type new_size: lista
+        :param size: o tamanho desejado do inimigo
+        :type size: tuple
+        :param color: cor do inimigo, utilizado para escolher a imagem
+        :type color: string
         """
+
+        self.id = "enemy"
+
+        # define a imagem padrão
         image = f"inimigo1{color}.png" if not image else image
+
+        # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
         super().__init__(position, lives, speed, image, size)
         self.isdead = False
         self.shield = False
 
     def got_hit(self):
+        """ Define os reflexos do dano tomado pelo inimigo
+        """
         self.lives -= 1
         if self.lives <= 0:
             self.isdead = True
             self.kill()
+        return None
 
-    def get_pos_enemy(self):  # é isto então nao, player tem um got_hit tb
+    def get_pos_enemy(self):
+        """ Retorna a posição de um inimigo
+        """
         return (self.rect.center[0], self.rect.center[1])
 
     def get_state(self):
+        """ Retorna o estado do inimigo (vivo/morto)
+        """
         return self.isdead
+
+    def get_id(self):
+        return self.id
 
 
 class Spider(Enemy):
+    """Classe do inimigo Spider
+    Herda de Enemy
+    """
+
     def __init__(self, position, lives=0, speed=.35, image=None, size=(75, 50), color='G'):
-        """  construtor. Basically the same as Spaceship.__init__(), only difference is the default value for image
-        :param position: the initial position of the element
+        """Spider construtor
+        :param position: a posição inicial do elemento.
         :type position: list
-        :param lives: how many times the element can get hit before dying
-        :type lives: integer (?)
-        :param speed: the initial speed of the element on both axis
-        :type speed: list
-        :param image: the image of the element. The class has a default value that gets overwriten when this parameter is not None
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: int
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: float
+        :param image: a imagem do elemento. Default None
         :type image: string
-        :param new_size: the desired size of the sprite. See ElementSprite.scale()
-        :type new_size: list
+        :param size: o tamanho do spider
+        :type size: tuple
+        :param color: cor do spider, utilizado para escolher a imagem
+        :type color: string
         """
+
+        # define a imagem padrão
         image = f"inimigo1{color}.png" if not image else image
+
+        # chama ElementSprite.__init__()
         super().__init__(position, lives, speed, image, size)
 
     def update(self, dt, playerposx, enemies, lst=None):
-        """ Atualiza a posição do elemento
+        """ Atualiza a posição e situação do spider
         :param dt: variação do tempo
-        :type dt: float (?)
+        :type dt: int
+        :param playerposx: posição do jogador
+        :type playerposx: int
+        :param enemies: lista dos inimigos vivos
+        :type enemies: list
+        :param lst: não usada no spider
+        :type lst: list
         """
-        # move_speed = (self.speed * dt / 16,
-        #               self.speed * dt / 16)  # note that dt=16, so dt/16 == 1
+
+        # posição e movimento, perseguindo o player
         pos_y = self.rect.center[1] + self.direction[1] * self.speed*dt
         if playerposx - self.rect.center[0] > 0:
             pos_x = self.rect.center[0] + 1 * self.speed*dt/4
         else:
             pos_x = self.rect.center[0] - 1 * self.speed*dt/4
         self.rect.center = (pos_x, pos_y)
+
+        # mata o elemento se ele estiver fora dos limites da tela
         self.check_borders()
 
 
 class Shooter(Enemy):
-    def __init__(self, position, lives=0, speed=.35, image=None, size=(60, 45), color='G'):
-        """  construtor. Basicamente o mesmo que Spaceship.__init__(), sendo a única diferença o valor padrão para a imagem
+    """ Classe do inimigo Shooter
+    Herda de Enemy.
+    """
+
+    def __init__(self, position, lives=2, speed=.35, image=None, size=(60, 45), color='G'):
+        """Shooter construtor
         :param position: a posição inicial do elemento.
-        :type position: lista
+        :type position: list
         :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
-        :type lives: inteiro (?)
+        :type lives: int
         :param speed: a velocidade inicial do elemento em ambos os eixos
-        :type speed: lista
-        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
+        :type speed: float
+        :param image: a imagem do elemento. Default None
         :type image: string
-        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
-        :type new_size: lista
+        :param size: o tamanho do spider
+        :type size: tuple
+        :param color: cor do spider, utilizado para escolher a imagem
+        :type color: string
         """
+
+        # define a imagem padrão
         image = f"inimigo2{color}.png" if not image else image
+
+        # chama ElementSprite.__init__()
         super().__init__(position, lives, speed, image, size)
         self.direction = (1, 0)
         self.shtcounter = 0
         self.color = color
 
     def update(self, dt, playerposx, enemies, lst=None):
-        """ Atualia a posição do elemento
+        """ Atualiza a posição e situação do shooter
         :param dt: variação do tempo
-        :type dt: float (?)
+        :type dt: int
+        :param playerposx: posição do jogador
+        :type playerposx: int
+        :param enemies: lista dos inimigos vivos
+        :type enemies: list
+        :param lst: lista de todos os tiros do shooter
+        :type lst: list
         """
-        # move_speed = (self.speed * dt / 16,
-        #               self.speed * dt / 16)  # note that dt=16, so dt/16 == 1
+
+        # posição e movimento, fixando em y=50 definindo sua movimentação de um lado para o outro da tela
         pos_x = self.rect.center[0]
         pos_y = self.rect.center[1]
         if pos_y < 50:
@@ -330,53 +514,102 @@ class Shooter(Enemy):
         pos_x += self.direction[0]*self.speed*dt/4
         self.rect.center = (pos_x, pos_y)
 
+        # definindo frequência de tiros do shooter
         if self.shtcounter > 60:
             self.shoot(lst)
             self.shtcounter = 0
         self.shtcounter += 1
 
+        # mata o elemento se ele estiver fora dos limites da tela
         self.check_borders()
 
     def shoot(self, shoots):
+        """Define os efeitos do tiro do shooter
+        :param shoots: tiros do shooter
+        :type shoots: list
+        """
+        # som do tiro
         play_sound("Enemy Shoot.ogg")
+
+        # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
         laser = Laser((self.rect.center[0], self.rect.top),
                       image=f'tiroinimigo{self.color}.png', direction=(0, 1))
         shoots.append([laser, pygame.sprite.RenderPlain(laser)])
 
 
 class Bomb(Enemy):
-    def __init__(self, position, lives=0, speed=.25, image=None, size=(55, 60), color='G'):
-        """  construtor. Basicamente o mesmo que Spaceship.__init__(), sendo a única diferença o valor padrão para a imagem
+    """ Classe do inimigo Bomb
+    Herda de Enemy.
+    """
+
+    def __init__(self, position, lives=3, speed=.15, image=None, size=(55, 60), color='G'):
+        """Bomb construtor
         :param position: a posição inicial do elemento.
-        :type position: lista
+        :type position: list
         :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
-        :type lives: inteiro (?)
+        :type lives: int
         :param speed: a velocidade inicial do elemento em ambos os eixos
-        :type speed: lista
-        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
+        :type speed: float
+        :param image: a imagem do elemento. Default None
         :type image: string
-        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
-        :type new_size: lista
+        :param size: o tamanho do spider
+        :type size: tuple
+        :param color: cor do spider, utilizado para escolher a imagem
+        :type color: string
         """
+
+        # define a imagem padrão
         image = f"inimigo3{color}.png" if not image else image
+
+        # chama ElementSprite.__init__()
         super().__init__(position, lives, speed, image, size)
+        self.id = "bomb"
+
+    def update(self, dt, playerposx, enemies, lst=None):
+        """ Atualiza a posição e situação do bomb
+        :param dt: variação do tempo
+        :type dt: int
+        :param playerposx: posição do jogador
+        :type playerposx: int
+        :param enemies: lista dos inimigos vivos
+        :type enemies: list
+        :param lst: lista de todos os elementos ativos: inimigos, tiros do player e tiros dos inimigos
+        :type lst: list
+        """
+
+        # posição
+        pos_y = self.rect.center[1] + self.direction[1] * self.speed*dt
+        self.rect.center = (self.rect.center[0], pos_y)
+
+        # mata o elemento se ele estiver fora dos limites da tela
+        self.check_borders()
 
 
 class Shield(Enemy):
-    def __init__(self, position, lives=0, speed=.35, image=None, size=(50, 50), color='G'):
-        """  construtor. Basicamente o mesmo que Spaceship.__init__(), sendo a única diferença o valor padrão para a imagem
+    """ Classe do inimigo Shield
+    Herda de Enemy.
+    """
+
+    def __init__(self, position, lives=4, speed=.35, image=None, size=(50, 50), color='G'):
+        """Shield construtor
         :param position: a posição inicial do elemento.
-        :type position: lista
+        :type position: list
         :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
-        :type lives: inteiro (?)
+        :type lives: int
         :param speed: a velocidade inicial do elemento em ambos os eixos
-        :type speed: lista
-        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
+        :type speed: float
+        :param image: a imagem do elemento. Default None
         :type image: string
-        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
-        :type new_size: lista
+        :param size: o tamanho do spider
+        :type size: tuple
+        :param color: cor do spider, utilizado para escolher a imagem
+        :type color: string
         """
+
+        # define a imagem padrão
         image = f"inimigo4{color}.png" if not image else image
+
+        # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
         super().__init__(position, lives, speed, image, size)
         self.enemy = None
         self.enemyposx = 0
@@ -384,6 +617,11 @@ class Shield(Enemy):
         self.shield = True
 
     def choose_rand_enemy(self, enemylist):
+        """ Escolhe um inimigo aleatório na lista de inimigos vivos, confere se sua posição está acima do Shield e se o inimigo já não está sendo protegido por outro escudo
+        :param enemylist: lista de inimigos ativos
+        :type enemylist: list
+        """
+
         if len(enemylist) > 0:
             enemy = random.choice(enemylist)[0]
             if not enemy.shield and self.rect.center[1] > enemy.rect.center[1]:
@@ -391,19 +629,21 @@ class Shield(Enemy):
                 self.enemy.shield = True
         else:
             self.enemy = None
-            # self.enemyposx = rand_enemy.get_pos_enemy()[0]
-            # self.enemyposy = rand_enemy.get_pos_enemy()[1]
-        # else:
-            # self.enemyposx = self.rect.center[0]
-            # self.enemyposy = 640
 
     def update(self, dt, playerposx, enemylist, lst=None):
-        """ Updates the position of the element 
-        :param dt: time variation
-        :type dt: float (?)
+        """ Atualiza a posição e situação do Shield
+        :param dt: variação do tempo
+        :type dt: int
+        :param playerposx: posição do jogador
+        :type playerposx: int
+        :param enemylist: lista dos inimigos vivos
+        :type enemylist: list
+        :param lst: lista de todos os elementos ativos: inimigos, tiros do player e tiros dos inimigos
+        :type lst: list
         """
-        # move_speed = (self.speed * dt / 16,
-        #               self.speed * dt / 16)  # note that dt=16, so dt/16 == 1
+
+        # atualiza a situação quanto à lista de inimigos, usando o choose_rand_enemy
+        # se já houver inimigo selecionado, pega sua posição
         if not self.enemy:
             self.choose_rand_enemy(enemylist)
             self.enemyposx = self.rect.center[0]
@@ -415,6 +655,7 @@ class Shield(Enemy):
                 self.enemyposx = self.enemy.get_pos_enemy()[0]
                 self.enemyposy = self.enemy.get_pos_enemy()[1]
 
+        # Define a posição e movimentação do Shield, posicionando-o abaixo do inimigo aleatório selecionado
         pos_y = self.rect.center[1]
 
         if self.enemyposx - self.rect.center[0] > 5:
@@ -423,16 +664,316 @@ class Shield(Enemy):
             pos_x = self.rect.center[0] - 1 * self.speed*dt
         else:
             pos_x = self.enemyposx
-        # baixo -> diferença negativa
-        #  talvez seja uma boa mudar esse 50 pra ver onde o escudo para
         if (self.rect.center[1] - self.enemyposy) < 50:
             pos_y += self.direction[1] * self.speed * \
-                dt  # se não estiver 50 pixels abaixo
+                dt
         elif (self.rect.center[1] - self.enemyposy) > 200:
             pos_y -= self.direction[1] * self.speed * \
-                dt  # se não estiver 50 pixels abaixo
+                dt
         elif (self.rect.center[1] - self.enemyposy) > 50:
             pos_y -= self.direction[1] * self.speed * \
-                dt  # se não estiver 50 pixels abaixo
+                dt
         self.rect.center = (pos_x, pos_y)
-        self.check_borders()  # also, nao quer dar uma pausa nao? pra almoçar?
+
+        # mata o elemento se ele estiver fora dos limites da tela
+        self.check_borders()
+
+
+class BossSpider(Enemy):
+    """ Classe do Boss Spider.
+    Herda de Enemy"""
+
+    def __init__(self, position, lives=30, speed=.35, image=None, size=(160, 160), color=None):
+        """BossSpider construtor
+        :param position: a posição inicial do elemento.
+        :type position: list
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: int
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: float
+        :param image: a imagem do elemento. Default None
+        :type image: string
+        :param size: o tamanho do spider
+        :type size: tuple
+        :param color: cor do spider, utilizado para escolher a imagem. Default None
+        :type color: string
+        """
+
+        # define a imagem padrão
+        image = "boss1G.png" if not image else image
+
+        # chama ElementSprite.__init__()
+        super().__init__(position, lives, speed, image, size)
+
+    def update(self, dt, playerposx, enemies, lst=None):
+        """ Atualiza a posição e situação do elemento
+        :param dt: variação do tempo
+        :type dt: int
+        """
+
+        # define movimento do Boss Spider, tornando seu movimento cíclico, ou seja, ao sair na tela embaixo, ele retorna em cima
+        pos_y = self.rect.center[1] + self.direction[1] * self.speed*dt
+        if playerposx - self.rect.center[0] > 0:
+            pos_x = self.rect.center[0] + 1 * self.speed*dt/4
+        else:
+            pos_x = self.rect.center[0] - 1 * self.speed*dt/4
+        if pos_x < 0:
+            pos_x = 640
+        elif pos_x > 640:
+            pos_x = 0
+        if pos_y < 0:
+            pos_y = 640
+        elif pos_y > 640:
+            pos_y = 0
+        self.rect.center = (pos_x, pos_y)
+
+
+class BossShooter(Enemy):
+    """ Classe do Boss Shooter
+    Herda de Enemy.
+    """
+
+    def __init__(self, position, lives=20, speed=.35, image=None, size=(145, 140), color=None):
+        """BossShooter construtor
+        :param position: a posição inicial do elemento.
+        :type position: list
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: int
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: float
+        :param image: a imagem do elemento. Default None
+        :type image: string
+        :param size: o tamanho do spider
+        :type size: tuple
+        :param color: cor do spider, utilizado para escolher a imagem. Default None
+        :type color: string
+        """
+
+        # define a imagem padrão
+        image = "boss2Y.png" if not image else image
+
+        # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
+        super().__init__(position, lives, speed, image, size)
+        self.direction = (1, 0)
+        self.shtcounter = 0
+        self.color = color
+
+    def update(self, dt, playerposx, enemies, lst=None):
+        """ Atualiza a posição e situação do elemento
+        :param dt: variação do tempo
+        :type dt: int
+        """
+
+        # posição e movimento, fixando em y=200 definindo sua movimentação de um lado para o outro da tela
+        pos_x = self.rect.center[0]
+        pos_y = self.rect.center[1]
+        if pos_y < 200:
+            pos_y += self.speed*dt
+        if pos_x >= 580:
+            self.direction = (-0.71, 0)
+            self.speed *= 1.2
+        elif pos_x <= 40:
+            self.direction = (1, 0)
+            self.speed *= 1.2
+        pos_x += self.direction[0]*self.speed*dt/4
+        self.rect.center = (pos_x, pos_y)
+
+        # definindo frequência de tiros do Boss Shooter
+        if self.shtcounter > 60:
+            self.shoot(lst)
+            self.shtcounter = 0
+        self.shtcounter += 1
+
+        # mata o elemento se ele estiver fora dos limites da tela
+        self.check_borders()
+
+    def shoot(self, shoots):
+        """Define os efeitos do tiro do Boss Shooter
+        :param shoots: tiros do Boss Shooter
+        :type shoots: list
+        """
+        # som do tiro
+        play_sound("Enemy Shoot.ogg")
+        # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
+        laser = Laser((self.rect.center[0], self.rect.top),
+                      image=f'tiroinimigoY.png', direction=(0, 1))
+        shoots.append([laser, pygame.sprite.RenderPlain(laser)])
+
+
+class BossBomb(Enemy):
+    """ Classe do Boss Bomb
+    Herda de Enemy.
+    """
+
+    def __init__(self, position, lives=2, speed=.35, image=None, size=(150, 140), color=None):
+        """BossBomb construtor
+        :param position: a posição inicial do elemento.
+        :type position: list
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: int
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: float
+        :param image: a imagem do elemento. Default None
+        :type image: string
+        :param size: o tamanho do spider
+        :type size: tuple
+        :param color: cor do spider, utilizado para escolher a imagem. Default None
+        :type color: string
+        """
+
+        # define a imagem padrão
+        image = "Boss3R.png" if not image else image
+
+        # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
+        super().__init__(position, lives, speed, image, size)
+        self.direction = (1, 0)
+        self.shtcounter = 0
+        self.color = color
+
+    def update(self, dt, playerposx, enemies, lst=None):
+        """ Atualiza a posição e situação do shooter
+        :param dt: variação do tempo
+        :type dt: int
+        :param playerposx: posição do jogador
+        :type playerposx: int
+        :param enemies: lista dos inimigos vivos
+        :type enemies: list
+        :param lst: lista de todos os tiros do shooter. Default None
+        :type lst: list
+        """
+
+        # posição e movimento, fixando em y=50 definindo sua movimentação de um lado para o outro da tela
+        pos_x = self.rect.center[0]
+        pos_y = self.rect.center[1]
+        if (pos_x <= 60) and (pos_y <= 60):
+            self.direction = (0, 1)
+        elif (pos_x <= 60) and (pos_y >= 540):
+            self.direction = (1, 0)  # voce que botou '-'
+        elif (pos_x >= 540) and (pos_y >= 540):
+            self.direction = (0, -0.71)
+        elif (pos_x >= 540) and (pos_y <= 60):
+            self.direction = (-0.71, 0)
+        pos_x += self.direction[0]*self.speed*dt/4
+        pos_y += self.direction[1]*self.speed*dt/4
+        self.rect.center = (pos_x, pos_y)
+
+
+class BossShield(Enemy):
+    """ Classe do Boss Shield
+    Herda de Enemy.
+    """
+
+    def __init__(self, position, lives=20, speed=.35, image=None, size=(145, 140), color=None):
+        """Boss Shield construtor
+        :param position: a posição inicial do elemento.
+        :type position: list
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: int
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: float
+        :param image: a imagem do elemento. Default None
+        :type image: string
+        :param size: o tamanho do spider
+        :type size: tuple
+        :param color: cor do spider, utilizado para escolher a imagem. Default None
+        :type color: string
+        """
+
+        # define a imagem padrão
+        image = "boss4B.png" if not image else image
+
+        # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
+        super().__init__(position, lives, speed, image, size)
+        self.direction = (1, 0)
+        self.shtcounter = 0
+        self.color = color
+
+    def update(self, dt, playerposx, enemies, lst=None):
+        """ Atualiza a posição e situação do Bpss Shield
+        :param dt: variação do tempo
+        :type dt: int
+        :param playerposx: posição do jogador
+        :type playerposx: int
+        :param enemies: lista dos inimigos vivos
+        :type enemies: list
+        :param lst: lista de todos os tiros do shooter. Default None
+        :type lst: list
+        """
+
+        # posições do Boss Shield
+        pos_x = self.rect.center[0]
+        pos_y = self.rect.center[1]
+
+        # movimentação do Boss Shield seguindo o jogador
+        if pos_y < 200:
+            pos_y += self.speed*dt
+        if playerposx - self.rect.center[0] > 0:
+            pos_x = self.rect.center[0] + 1 * self.speed*dt/4
+        else:
+            pos_x = self.rect.center[0] - 1 * self.speed*dt/4
+        if pos_x < 0:
+            pos_x = 640
+        elif pos_x > 640:
+            pos_x = 0
+        self.rect.center = (pos_x, pos_y)
+
+
+class Trojan(Enemy):
+    """ Classe Trojan
+    Herda de Enemy
+    """
+
+    def __init__(self, position, lives=400, speed=.35, image=None, size=(640, 160), color=None):
+        """ Trojan construtor.
+        :param position: a posição inicial do elemento.
+        :type position: lista
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: inteiro (?)
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: lista
+        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
+        :type image: string
+        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
+        :type new_size: lista
+        """
+
+        # define a imagem padrão
+        image = "troia1.png" if not image else image
+
+        # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
+        super().__init__(position, lives, speed, image, size)
+        self.direction = (1, 0)
+        self.shtcounter = 0
+        self.color = color
+        self.shield = True
+
+    def update(self, dt, playerposx, enemies, lst=None):
+        """ Atualia a posição do Trojan
+        :param dt: variação do tempo
+        :type dt: int
+        """
+
+        pos_x = 320
+        pos_y = self.rect.center[1]
+        if pos_y < 80:
+            pos_y += self.speed*dt
+        pos_x += self.direction[0]*self.speed*dt/40
+        self.rect.center = (pos_x, pos_y)
+
+        # definindo frequência de tiros do Trojan
+        if self.shtcounter > 60:
+            self.shoot(lst)
+            self.shtcounter = 0
+        self.shtcounter += 1
+
+    def shoot(self, shoots):
+        """Define os efeitos do tiro do Trojan
+        :param shoots: tiros do Trojan
+        :type shoots: list
+        """
+        # som do tiro
+        play_sound("Enemy Shoot.ogg")
+        # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
+        laser = Laser((random.randint(0, 640), self.rect.top),
+                      image=f'tiroinimigo{self.color}.png', direction=(0, 1))
+        shoots.append([laser, pygame.sprite.RenderPlain(laser)])
