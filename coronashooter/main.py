@@ -54,6 +54,7 @@ class Game:
         # timer de colisão para que o jogador não tome dano várias vezes de uma mesma colisão
         self.colcounter = 0
         self.start = False
+        self.incredits = False
         self.color = 'G'  # define a cor dos elementos da primeira fase
         # lista ordenada de cores de cada fase
         self.color_list = ['G', 'Y', 'R', 'B', 'P']
@@ -82,7 +83,7 @@ class Game:
         self.background = Background(f'menu.png')
 
         # seta o título da janela
-        pygame.display.set_caption('PC Virus Shooter')
+        pygame.display.set_caption('TroPHY.exe')
         pygame.mouse.set_visible(0)  # deixa o cursor do mouse invisível
         self.font = pygame.font.Font(os.path.join("fonts", 'Pixels.ttf'), 72)
         self.font_love = pygame.font.Font(
@@ -438,6 +439,7 @@ class Game:
             credits)])
 
     def credits(self):
+        self.incredits = True
         self.player.set_pos([305, 536])
         self.blocks.clear()
         self.background = Background('nomes.png')
@@ -458,6 +460,7 @@ class Game:
             self.credits()
             return 0
         if value == 'menu':
+            self.incredits = False
             self.blocks.clear()
             self.player.set_pos([305, 536])
             self.menu()
@@ -502,10 +505,10 @@ class Game:
                 self.update_elements(dt)
             self.draw_elements()  # desenha os elementos
             self.garbage_collector()
-            if not self.start:
+            if not self.start and not self.incredits:
                 scoretext = self.font.render(
-                    "Last Score = "+str(self.last_score), 1, (255, 255, 255))
-                self.screen.blit(scoretext, (180, 19))
+                    "Score = "+str(self.last_score), 1, (255, 255, 255))
+                self.screen.blit(scoretext, (160, 19))
             if self.start:
                 self.update_interface()  # chama atualizações de interface
             if self.player.isdead:
