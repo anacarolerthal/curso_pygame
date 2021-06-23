@@ -62,10 +62,12 @@ class Game:
         self.last_score = 0
         # lista de dicionários para definir a presença dos inimigos nas fases
         self.waves = [{"spider": 1, "shooter": 0, "bomb": 0, "shield": 0}, {"spider": 2, "shooter": 1, "bomb": 0, "shield": 0}, {
-            "spider": 2, "shooter": 2, "bomb": 1, "shield": 0}, {"spider": 3, "shooter": 5, "bomb": 1, "shield": 2}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}]
+            "spider": 2, "shooter": 2, "bomb": 1, "shield": 0}, {"spider": 4, "shooter": 3, "bomb": 1, "shield": 2}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}]
         self.set_current_wave()
         self.scoreboss = 0
         self.bosscounter = 0
+        self.true_score = 0
+        self.temp_score = 0
         pygame.init()  # inicia o módulo pygame
 
         # seta as flags de renderização
@@ -97,7 +99,7 @@ class Game:
         self.background.update(dt)
         for enemy in self.enemies:  # atualiza inimigos pela lista de inimigos vivos
             enemy[0].update(dt, self.player.rect.center[0],
-                            self.enemies, self.enemy_shoots)
+                            self.enemies, lst=self.enemy_shoots)
         for shoot in self.shoots:  # atualiza tiros do player pela lista desses
             shoot[0].update(dt)
         for shoot in self.enemy_shoots:  # atualiza tiros dos inimigos pela lista desses
@@ -136,7 +138,7 @@ class Game:
             enemy = BossShooter((320, 10), color=self.color)
             self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
         elif self.bosscounter == 2:
-            enemy = BossBomb((320, 10), color=self.color)
+            enemy = BossBomb((320, 60), color=self.color)
             self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
         elif self.bosscounter == 3:
             enemy = BossShield((320, 10), color=self.color)
@@ -495,10 +497,14 @@ class Game:
                 self.update_interface()  # chama atualizações de interface
             if self.player.isdead:
                 self.start = False
-                self.player.isdead = False
-                self.player.set_lives(3)
+                self.player = Player([305, 536], 3)
+                self.elements['player'] = pygame.sprite.RenderPlain(
+                    self.player)
                 self.enemies.clear()  # limpa a lista de inimigos vivos
                 self.enemy_shoots.clear()
+                self.explosions.clear()
+                self.power_ups.clear()
+                self.shoots.clear()
                 self.menu()
             pygame.display.flip()
         pygame.quit()  # sai do jogo
