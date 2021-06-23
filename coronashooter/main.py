@@ -13,6 +13,7 @@ from elements import *
 import random
 import time
 import os
+import math
 
 _sound_library = {}  # biblioteca de efeitos sonoros
 
@@ -56,14 +57,15 @@ class Game:
         self.color = 'G'  # define a cor dos elementos da primeira fase
         # lista ordenada de cores de cada fase
         self.color_list = ['G', 'Y', 'R', 'B', 'P']
+        self.color_list.append(random.choice(self.color_list))
         self.level = 0  # define a fase inicial
+        self.last_score = 0
         # lista de dicionários para definir a presença dos inimigos nas fases
         self.waves = [{"spider": 1, "shooter": 0, "bomb": 0, "shield": 0}, {"spider": 2, "shooter": 1, "bomb": 0, "shield": 0}, {
-            "spider": 2, "shooter": 2, "bomb": 1, "shield": 0}, {"spider": 3, "shooter": 5, "bomb": 1, "shield": 2}]
+            "spider": 2, "shooter": 2, "bomb": 1, "shield": 0}, {"spider": 3, "shooter": 5, "bomb": 1, "shield": 2}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}]
         self.set_current_wave()
         self.scoreboss = 0
         self.bosscounter = 0
-        self.last_score = 0
         pygame.init()  # inicia o módulo pygame
 
         # seta as flags de renderização
@@ -149,7 +151,7 @@ class Game:
         Na prática, diz respeito ao controle do Player pelo usuário e pelo quit no jogo
         """
         # lida com a janela de quit ("x" no canto superior direito)
-        if event.type == pygame.QUIT or self.player.isdead:
+        if event.type == pygame.QUIT:
             self.run = False
         # lida com inputs do teclado com funções do Pygame
         if event.type in (KEYDOWN,):
@@ -196,13 +198,22 @@ class Game:
         """ Faz o update da interface do jogo
         """
         # atualiza o texto do Score
+        if self.player.shield:
+            heart_color = (0, 181, 204)
+        else:
+            heart_color = (0, 0, 0)
+
         scoretext = self.font.render(
             "Score = "+str(self.player.get_score()), 1, (0, 0, 0))
         self.screen.blit(scoretext, (15, 570))
 
+        bombtext = self.font.render(
+            str(self.player.get_bombs()), 1, (0, 0, 0))
+        self.screen.blit(bombtext, (500, 570))
+
         # atualiza o display de vidas
         lifestext = self.font_love.render(
-            "@"*self.player.get_lives(), 1, (0, 0, 0))
+            "@"*self.player.get_lives(), 1, heart_color)
         self.screen.blit(lifestext, (10, 540))
 
     def spawn(self):
@@ -228,7 +239,10 @@ class Game:
             self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
             self.enemy_counter = 0
         else:
-            self.enemy_counter += 1 * (self.level+1)
+            mult = 1
+            if self.bosscounter >= 6:
+                mult = math.log(self.truescore + self.bosscounter*100)/4
+            self.enemy_counter += 1 * (self.level+1) * mult
 
         # Geração de power ups
         if self.power_up_counter > 180:  # tempo para spawn
@@ -332,7 +346,6 @@ class Game:
         for shoot in self.enemy_shoots:
             plyr_collision = self.player.rect.colliderect(shoot[0].rect)
             if plyr_collision and self.colcounter <= 0:
-                print('ui')
                 self.player.got_hit()
                 self.enemy_shoots.remove(shoot)
                 self.colcounter = 60
@@ -353,7 +366,6 @@ class Game:
         """ Lida com a colisão do player com os power ups e implementa o poder
         """
 
-        print('entrou')
         explosion1 = Explosion(  # centraliza a explosão horizontal
             (320, enemy[0].rect.center[1]), type='1', color=self.color)
         explosion2 = Explosion(  # centraliza a explosão vertical
@@ -386,11 +398,17 @@ class Game:
         """ Define a função de acesso às fases através dos sprites do menu interativo
         """
         # define os sprites das fases, suas imagens de fundo e valor para índice
+        self.start_music("MenuTheme.ogg")
+        self.player.set_pos([305, 536])
+        self.background = Background(f'menu.png')
         level_1 = Block((79, 78), image="fase1.png", value=0)
         level_2 = Block((79, 196), image="fase2.png", value=1)
         level_3 = Block((79, 315), image="fase3.png", value=2)
         level_4 = Block((79, 434), image="fase4.png", value=3)
+        level_5 = Block((403.5, 148), image="fase5.png", value=4)
         zen = Block((81, 553), image="zen.png", value=5)
+        credits = Block((558, 523), image="creditos.png",
+                        value='credits', size=(82, 102))
         quit = Block((590, 45), image="sair.png", value='quit',
                      size=(72, 72))  # sprite para sair do jogo
         self.blocks.append([level_1, pygame.sprite.RenderPlain(
@@ -401,28 +419,50 @@ class Game:
             level_3)])
         self.blocks.append([level_4, pygame.sprite.RenderPlain(
             level_4)])
+        self.blocks.append([level_5, pygame.sprite.RenderPlain(
+            level_5)])
         self.blocks.append([zen, pygame.sprite.RenderPlain(
             zen)])
         self.blocks.append([quit, pygame.sprite.RenderPlain(
             quit)])
+        self.blocks.append([credits, pygame.sprite.RenderPlain(
+            credits)])
+
+    def credits(self):
+        self.player.set_pos([305, 536])
+        self.blocks.clear()
+        self.background = Background('nomes.png')
+        return_b = Block((575, 552), image="voltar.png",
+                         value="menu", size=(89, 99))
+        self.blocks.append([return_b, pygame.sprite.RenderPlain(
+            return_b)])
 
     def start_game(self, value):
         """ Inicia o jogo
         """
         self.blocks.clear()
+        self.player.set_pos([305, 536])
         if value == 'quit':
             self.run = False
             return 0
+        if value == 'credits':
+            self.credits()
+            return 0
+        if value == 'menu':
+            self.blocks.clear()
+            self.player.set_pos([305, 536])
+            self.menu()
+            return 0
         self.level = value
         self.color = self.color_list[self.level]  # muda a cor padrão
-        scores = [0, 90, 190, 290]
+        scores = [0, 90, 190, 290, 390, 500]
         self.player.set_score(scores[self.level])
         self.set_current_wave()  # chama a lista de inimigos do nível
         self.background = Background(
             f'fundo{self.color}.png')  # define o background
-        self.start_music("LevelTheme.ogg")
+        self.change_music("LevelTheme.ogg")
         self.enemies.clear()  # limpa a lista de inimigos vivos
-        self.enemy_shoots.clear()  # limpa a lista de inimigos vivos
+        self.enemy_shoots.clear()  # limpa a lista de disparos de inimigos vivos
         self.start = True
 
     def loop(self):
@@ -430,7 +470,7 @@ class Game:
         """
         clock = pygame.time.Clock()  # cria o relógio do jogo
         dt = 16  # define a efetiva velocidade do jogo
-        self.player = Player([320, 540], 3)  # posição inicial do player
+        self.player = Player([305, 536], 3)  # posição inicial do player
         self.elements['player'] = pygame.sprite.RenderPlain(
             self.player)  # prepara o sprite do Player
         self.start_music("MenuTheme.ogg")  # escolhe a música inicial
@@ -453,6 +493,13 @@ class Game:
             self.garbage_collector()
             if self.start:
                 self.update_interface()  # chama atualizações de interface
+            if self.player.isdead:
+                self.start = False
+                self.player.isdead = False
+                self.player.set_lives(3)
+                self.enemies.clear()  # limpa a lista de inimigos vivos
+                self.enemy_shoots.clear()
+                self.menu()
             pygame.display.flip()
         pygame.quit()  # sai do jogo
 
@@ -496,6 +543,12 @@ class Player(Spaceship):
         self.isdead = False
 
     def update(self, dt):
+        """ Atualiza o Player
+        :param dt: variação de tempo
+        :type dt: int
+        """
+
+        # movimento
         new_acc = [0, 0]
         keys = pygame.key.get_pressed()
         if keys[K_LEFT]:
@@ -507,6 +560,7 @@ class Player(Spaceship):
         if keys[K_DOWN]:
             new_acc[1] += 1
 
+        # variação da imagem do sprite do Player quando ele se movimenta para esquerda e direita
         new_acc = tuple(new_acc)
         if new_acc != self.acc:
             self.acc = new_acc
@@ -517,30 +571,35 @@ class Player(Spaceship):
             elif self.acc[0] == -1:
                 self.set_image('nave3.png', self.size)
 
+        # velocidade do Player
         self.vel = (self.vel[0]+self.acc[0]*dt/100,
                     self.vel[1]+self.acc[1]*dt/100)
         self.normalize_vel()
 
+        # Contagem de tempo do power up speed
         if self.spd_counter > 360:
             self.power_ups[0] = False
             self.spd_counter = 0
 
+        # acelerador~de velocidade do power up [0]
         if self.power_ups[0]:
             mtp = 1.3
             self.spd_counter += 1
         else:
             mtp = 1
 
+        # posição
         pos_x = self.rect.center[0] + self.vel[0]*dt*mtp
         pos_y = self.rect.center[1] + self.vel[1]*dt*mtp
 
-        # Reduce the velocity, as of friction
+        # Reduz a velocidade simulando fricção
         self.vel = (self.vel[0]*9/10, self.vel[1]*9/10)
         if abs(self.vel[0]) < 0.01:
             self.vel = (0, self.vel[1])
         if abs(self.vel[1]) < 0.01:
             self.vel = (self.vel[0], 0)
 
+        # define posições x limítrofes como "atravessar a tela" e limites de y como "paredes"
         if pos_x < 0:
             pos_x = 640
         elif pos_x > 640:
@@ -551,6 +610,7 @@ class Player(Spaceship):
             pos_y = 640
         self.rect.center = (pos_x, pos_y)
 
+        # Contagem de tempo do power up que aumenta o número de tiros
         if self.sht_counter > 360:
             self.power_ups[1] = False
             self.sht_counter = 0
@@ -558,33 +618,48 @@ class Player(Spaceship):
         if self.power_ups[1]:
             self.sht_counter += 1
 
+        # power up shield
         if self.shield:
             self.shield[0].update(dt)
 
     def shoot(self, event, shoots):
+        """ Função de atirar do player
+        :param event: tecla pressionada
+        :type event: KEYDOWN
+        :param shoots: lista de tiros do player
+        :type shoots: list
+        """
         if event.type in (KEYDOWN,):
             key = event.key
-            if key == K_LCTRL:
-                play_sound("PlayerShoot.ogg")
-                if not self.power_ups[1]:
+            if key == K_LCTRL:  # define a tecla "ctrl" como de atirar
+                play_sound("PlayerShoot.ogg")  # efeito sonoro de tiro
+                if not self.power_ups[1]:  # tiro neutro
                     laser = Laser((self.rect.center[0], self.rect.top))
                     shoots.append([laser, pygame.sprite.RenderPlain(laser)])
-                else:
+                else:  # tiros com power up
                     laser1 = Laser((self.rect.center[0], self.rect.top))
                     laser2 = Laser(
                         (self.rect.center[0], self.rect.top), direction=(1, -1), angle=-45)
                     laser3 = Laser(
                         (self.rect.center[0], self.rect.top), direction=(-1, -1), angle=45)
                     lst = [[laser1, pygame.sprite.RenderPlain(laser1)], [laser2, pygame.sprite.RenderPlain(
-                        laser2)], [laser3, pygame.sprite.RenderPlain(laser3)]]  # Cria três lasers
+                        laser2)], [laser3, pygame.sprite.RenderPlain(laser3)]]  # cria três lasers
                     for laser in lst:
                         shoots.append(laser)
+                self.shot_cooldown = 2  # tempo de cooldown para atirar novamente
 
     def explode(self, event, explosions):
+        """ Power up de explosão do player
+        :param event: tecla pressionada
+        :type event: KEYDOWN
+        :param explosions: lista de explosões ativas
+        :type shoots: list
+        """
         if event.type in (KEYDOWN,):
             key = event.key
-            if key == K_SPACE:
+            if key == K_SPACE:  # define a tecla "space" como de atirar
                 if self.bombs > 0:
+                    # criamos os sprites e os adicionamos na lista de explosões ativas
                     explosion1 = Explosion(
                         (320, self.rect.center[1]), type='1', color='R', hits=[self])
                     explosion2 = Explosion(
@@ -595,41 +670,57 @@ class Player(Spaceship):
                         [explosion2, pygame.sprite.RenderPlain(explosion2)])
                     self.bombs -= 1
 
-    def normalize_vel(self):  # função usada para lidar com a movimentação
+    def normalize_vel(self):
+        """ Função usada para lidar com a movimentação, tornando-a mais fluida
+        """
         abs_vel = (self.vel[0]**2+self.vel[1]**2)**.5
         if abs_vel > self.max_vel:
             self.vel = (self.vel[0]/abs_vel*self.max_vel,
                         self.vel[1]/abs_vel*self.max_vel)
 
     def got_hit(self):
-        if self.shield:
+        """ Define os reflexos do dano tomado pelo Player
+        """
+        if self.shield:  # se tiver shield
             self.power_ups[3] = False
             self.shield = None
-        else:
+        else:  # se não tiver shield
             self.lives -= 1
-        if self.lives <= 0:
+        if self.lives <= 0:  # se for a última vida
             print(self.score)
             self.isdead = True
 
     def get_pos(self):
+        """ Retorna a posição do Player
+        """
         return (self.rect.center[0], self.rect.center[1])
 
     def get_score(self):
+        """ Retorna o score do Player
+        """
         return self.score
 
     def set_score(self, score):
+        """ Define o score do Player
+        :param score: placar
+        :type score: int
+        """
         self.score = score
         print(self.score)
 
     def set_power_up(self, power_up):
-        if power_up == 1:
+        """ Define os power ups do Player
+        :param power_up: número ligado ao power up
+        :type power_up: int
+        """
+        if power_up == 1:  # mais velocidade
             self.spd_counter = 0
-        elif power_up == 2:
+        elif power_up == 2:  # mais tiros
             self.sht_counter = 0
-        elif power_up == 3:
+        elif power_up == 3:  # explosão
             if self.bombs < 3:
                 self.bombs = 3
-        elif power_up == 4 and not self.power_ups[3]:
+        elif power_up == 4 and not self.power_ups[3]:  # shield
             shield = ShieldPowerUp(
                 (self.rect.center[0], self.rect.center[1]), player=self)
             self.shield = [shield, pygame.sprite.RenderPlain(shield)]
@@ -637,7 +728,12 @@ class Player(Spaceship):
         self.power_ups[power_up - 1] = True  # Array começa em 0
 
     def add_score(self):
+        """ Aumenta o placar
+        """
         self.score += 1
+
+    def get_bombs(self):
+        return self.bombs
 
 
 if __name__ == '__main__':
