@@ -1,54 +1,86 @@
-# Informações do Grupo
+# troPHY.exe 
 
-## Integrantes
- - Eduardo Adame Salles
- - Ana Carolina Erthal
- - Vinicius Hedler
- - Rodrigo Pintucci
- - Tiago Barradas
+Bem vindo ao TroPHY.exe! Impeça a invasão de vírus ao seu PC nesse jogo de estilo shooter criado com o Pygame.
 
-## Branch
- - game
+## Funcionamento
 
-## Como trabalhar
+Mova a setinha através do seu teclado utilizando as setas `esquerda`, `direita`, `cima` e `baixo`. Atire nos vírus invasores com a tecla `Ctrl` e utilize o power-up de explosão com `Espaço`.
 
-1. Apagar o fork do <https://github.com/fccoelho/curso_pygame>
-2. Fazer o fork desse repositório
-3. Clonar seu fork junto a branch game `git clone -b game <url-seu-fork>`
-4. Fazer as alterações + commits
-5. Fazer Push para o seu fork (na branch game)
-6. Abrir Pull Request para este repositório
-7. Pedir Revisão para um dos integrantes
-8. Lembrar de atualizar seu fork antes das alterações
+### Menu interativo
 
-## Objetivos Iniciais
- - [x] Traduzir Código (Carol)
- - [x] Revisar e Documentar o Código (Vini)
- - [x] Tamanho da Tela (Edu)
- - [x] Adicionar movimentação (Edu)
- - [ ] Calibrar movimentação (ir de um lado para o outro da tela) (Edu) ~~ Commit parcial / movimentação funcionando, mas não de forma ideal. Existe algo "grudando" o sprite na esquerda e em cima.
- - [ ] Sprites (speed, escudo, etc) (Diguin)
- - [ ] Implementar Sprites (Carol)
- - [ ] Power-Ups (Edu/Vini)
- - [ ] Indicação visual (número de vidas, inimigos) (Tiago)
- - [ ] Músicas e Efeitos Sonoros (Tiago)
- - [ ] Efeitos Visuais (Carol)
- - [ ] Menu (Vini)
- - [ ] Inimigos/Dificuldade/Visual diferente (Diguin/Vini)
+A defesa ao seu sistema já começa aqui! Note que o jogo é dividido em níveis sequenciais e de crescente dificuldade, mas é possível acessar todos eles a qualquer momento a partir do menu interativo! Basta mexer sua setinha até o nível desejado.
+Indicamos iniciar pelo Nível 1. É possível, ainda, acessar os créditos do jogo pelo menu.
 
-## Objetivos Extras
- - [ ] Dois jogadores
+#### Power Ups
+
+Passe pelo power up na tela para ativá-lo temporariamente! 
+
+Super velocidade
+
+Tiros triplos
+
+Bomba - utilize a bomba com a barra de espaço!
+
+Escudo
 
 
----
+### Nível 1
 
-# Pré-requisitos
-Antes de começar este curso você precisa ter instalado em seu computador o git (com o qual irá clora este repositório) e o pygame
+Oh não! Seu computador foi invadido pelos vírus spider! Destrua os invasores através dos seus disparos, mas fique atento à movimentação dos inimigos, já que eles tentam se aproximar do jogador.
+Ao fim da fase, batalhe contra o Spider Boss, de movimento vertical cíclico, para avançar para o próximo nível.
 
-```bash
-pip install pygame
-```
+![1g](https://raw.githubusercontent.com/adamesalles/curso_pygame/game/coronashooter/images/inimigo1G.png)
+![boss1g](https://raw.githubusercontent.com/adamesalles/curso_pygame/game/coronashooter/images/boss1G.png)
 
-# O Jogo
-O jogo que iremos criar chama-se "Corona Shooter". e trata-se de um jogo de naves espaciais inspirado em uma pandemia de coronavirus.
+
+
+### Nível 2
+
+Mais invasores! Dessa vez os vírus shooters não vão se aproximar, permanecendo no topo da tela, mas eles são poderosos, e atiram contínuamente em você! Seja rápido para evitar o caos.
+O Shooter Boss será muito ofensivo, mantendo a movimentação de seus mini vírus, mas com múltiplos disparos!
+
+![1g](https://raw.githubusercontent.com/adamesalles/curso_pygame/game/coronashooter/images/inimigo2Y.png)
+![boss1g](https://raw.githubusercontent.com/adamesalles/curso_pygame/game/coronashooter/images/boss2Y.png)
+
+
+### Nível 3
+
+Seu desafio agora é batalhar o vírus bomb. A dinâmica é complexa, já que ao serem atingidos, os bombs explodem vertical e horizontalmente. Tente atingí-los se movimentando, ou simplesmente deixá-los passar, aumentando seu score com outros personagens.
+O Bomb Boss irá rondar a tela pelas bordas, explodindo periodicamente! Mantenha-se no centro para evitar um desastre!
+
+![1g](https://raw.githubusercontent.com/adamesalles/curso_pygame/game/coronashooter/images/inimigo3R.png)
+![boss1g](https://raw.githubusercontent.com/adamesalles/curso_pygame/game/coronashooter/images/boss3R.png)
+
+
+### Nível 4
+
+A invasão ainda acabou! Lide com os vírus shield, que encontrarão um inimigo na tela para proteger, posicionando-se na frente dele! Assim, destruir o inimigo inicial é ainda mais difícil.
+Quando tudo já estiver parecendo desesperador, você terá que lidar com o Shield Boss, que seguirá o jogador, defendendo com sua área os outros inimigos! Derrote-o para acessar o nível final!
+
+![1g](https://raw.githubusercontent.com/adamesalles/curso_pygame/game/coronashooter/images/inimigo4B.png)
+![boss1g](https://raw.githubusercontent.com/adamesalles/curso_pygame/game/coronashooter/images/boss4B.png)
+
+### Nível 5 - TROJAN
+
+Uma nova ameaça foi detectada! Trojan, o cavalo de Tróia, invadiu o seu sistema e vai enviar muito inimigos! Destrua-os inimigos para vencer o jogo!
+
+
+### Modo ZEN
+
+Jogue infinitamente no modo Zen!
+
+
+## Informações do Grupo
+
+### Integrantes
+Eduardo Adame Salles
+Ana Carolina Erthal
+Vinicius Hedler
+Rodrigo Pintucci
+Tiago Barradas
+
+### Processo
+
+O trabalho foi realizado em etapas síncronas, com pulls individuais e síncronas, através do Live Share do VS Code, com commits realizados por uma pessoa.
+Além disso, a arte do jogo é de autoria do Rodrigo Pintucci e as músicas do Tiago Barradas.
 
