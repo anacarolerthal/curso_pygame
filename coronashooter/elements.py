@@ -463,7 +463,7 @@ class Spider(Enemy):
         # chama ElementSprite.__init__()
         super().__init__(position, lives, speed, image, size)
 
-    def update(self, dt, playerposx, enemies, lst=None):
+    def update(self, dt, playerposx, enemies, lst=None, lst2=None):
         """ Atualiza a posição e situação do spider
         :param dt: variação do tempo
         :type dt: int
@@ -517,7 +517,7 @@ class Shooter(Enemy):
         self.shtcounter = 0
         self.color = color
 
-    def update(self, dt, playerposx, enemies, lst=None):
+    def update(self, dt, playerposx, enemies, lst=None, lst2=None):
         """ Atualiza a posição e situação do shooter
         :param dt: variação do tempo
         :type dt: int
@@ -592,7 +592,7 @@ class Bomb(Enemy):
         super().__init__(position, lives, speed, image, size)
         self.id = "bomb"
 
-    def update(self, dt, playerposx, enemies, lst=None):
+    def update(self, dt, playerposx, enemies, lst=None, lst2=None):
         """ Atualiza a posição e situação do bomb
         :param dt: variação do tempo
         :type dt: int
@@ -657,7 +657,7 @@ class Shield(Enemy):
         else:
             self.enemy = None
 
-    def update(self, dt, playerposx, enemylist, lst=None):
+    def update(self, dt, playerposx, enemylist, lst=None, lst2=None):
         """ Atualiza a posição e situação do Shield
         :param dt: variação do tempo
         :type dt: int
@@ -710,7 +710,7 @@ class BossSpider(Enemy):
     """ Classe do Boss Spider.
     Herda de Enemy"""
 
-    def __init__(self, position, lives=5, speed=.35, image=None, size=(160, 160), color=None):
+    def __init__(self, position, lives=30, speed=.35, image=None, size=(160, 160), color=None):
         """BossSpider construtor
         :param position: a posição inicial do elemento.
         :type position: list
@@ -733,7 +733,7 @@ class BossSpider(Enemy):
         super().__init__(position, lives, speed, image, size)
         self.id = "boss"
 
-    def update(self, dt, playerposx, enemies, lst=None):
+    def update(self, dt, playerposx, enemies, lst=None, lst2=None):
         """ Atualiza a posição e situação do elemento
         :param dt: variação do tempo
         :type dt: int
@@ -742,9 +742,9 @@ class BossSpider(Enemy):
         # define movimento do Boss Spider, tornando seu movimento cíclico, ou seja, ao sair na tela embaixo, ele retorna em cima
         pos_y = self.rect.center[1] + self.direction[1] * self.speed*dt
         if playerposx - self.rect.center[0] > 0:
-            pos_x = self.rect.center[0] + 1 * self.speed*dt/4
+            pos_x = self.rect.center[0] + 1 * self.speed*dt/2
         else:
-            pos_x = self.rect.center[0] - 1 * self.speed*dt/4
+            pos_x = self.rect.center[0] - 1 * self.speed*dt/2
         if pos_x < 0:
             pos_x = 640
         elif pos_x > 640:
@@ -761,7 +761,7 @@ class BossShooter(Enemy):
     Herda de Enemy.
     """
 
-    def __init__(self, position, lives=20, speed=.35, image=None, size=(145, 140), color=None):
+    def __init__(self, position, lives=40, speed=.35, image=None, size=(145, 140), color=None):
         """BossShooter construtor
         :param position: a posição inicial do elemento.
         :type position: list
@@ -787,7 +787,7 @@ class BossShooter(Enemy):
         self.color = color
         self.id = "boss"
 
-    def update(self, dt, playerposx, enemies, lst=None):
+    def update(self, dt, playerposx, enemies, lst=None, lst2=None):
         """ Atualiza a posição e situação do elemento
         :param dt: variação do tempo
         :type dt: int
@@ -823,10 +823,17 @@ class BossShooter(Enemy):
         """
         # som do tiro
         play_sound("Enemy Shoot.ogg")
-        # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
-        laser = Laser((self.rect.center[0], self.rect.top),
-                      image=f'tiroinimigoY.png', direction=(0, 1))
-        shoots.append([laser, pygame.sprite.RenderPlain(laser)])
+        # cria os tiros (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
+        laser1 = Laser((self.rect.center[0], self.rect.top),
+                       image=f'tiroinimigoY.png', direction=(0, 1))
+        laser2 = Laser((self.rect.center[0], self.rect.top),
+                       image=f'tiroinimigoY.png', direction=(1, 1), angle=45)
+        laser3 = Laser((self.rect.center[0], self.rect.top),
+                       image=f'tiroinimigoY.png', direction=(-1, 1), angle=-45)
+        lst = [[laser1, pygame.sprite.RenderPlain(laser1)], [laser2, pygame.sprite.RenderPlain(
+            laser2)], [laser3, pygame.sprite.RenderPlain(laser3)]]
+        for laser in lst:
+            shoots.append(laser)
 
 
 class BossBomb(Enemy):
@@ -834,7 +841,7 @@ class BossBomb(Enemy):
     Herda de Enemy.
     """
 
-    def __init__(self, position, lives=2, speed=.35, image=None, size=(150, 140), color=None):
+    def __init__(self, position, lives=50, speed=.35, image=None, size=(150, 140), color=None):
         """BossBomb construtor
         :param position: a posição inicial do elemento.
         :type position: list
@@ -860,7 +867,7 @@ class BossBomb(Enemy):
         self.color = color
         self.id = "boss"
 
-    def update(self, dt, playerposx, enemies, lst=None):
+    def update(self, dt, playerposx, enemies, lst=None, lst2=None):
         """ Atualiza a posição e situação do shooter
         :param dt: variação do tempo
         :type dt: int
@@ -875,17 +882,31 @@ class BossBomb(Enemy):
         # posição e movimento, fixando em y=50 definindo sua movimentação de um lado para o outro da tela
         pos_x = self.rect.center[0]
         pos_y = self.rect.center[1]
-        if (pos_x <= 60) and (pos_y <= 60):
-            self.direction = (0, 1)
-        elif (pos_x <= 60) and (pos_y >= 540):
-            self.direction = (1, 0)  # voce que botou '-'
-        elif (pos_x >= 540) and (pos_y >= 540):
+        if (pos_x <= 60) and (pos_y >= 580):
             self.direction = (0, -0.71)
-        elif (pos_x >= 540) and (pos_y <= 60):
+        elif (pos_x <= 60) and (pos_y <= 60):
+            self.direction = (1, 0)
+        elif (pos_x >= 580) and (pos_y >= 580):
             self.direction = (-0.71, 0)
-        pos_x += self.direction[0]*self.speed*dt/4
-        pos_y += self.direction[1]*self.speed*dt/4
+        elif (pos_x >= 580) and (pos_y <= 60):
+            self.direction = (0, 1)
+        pos_x += self.direction[0]*self.speed*dt/2
+        pos_y += self.direction[1]*self.speed*dt/2
         self.rect.center = (pos_x, pos_y)
+
+        if (pos_x > 318 and pos_x < 322) or (pos_y > 318 and pos_y < 322):
+            print("in range")
+            self.explode(lst2)
+
+    def explode(self, explosions):
+        explosion1 = Explosion(
+            (320, self.rect.center[1]), type='1', color='R', hits=[self])
+        explosion2 = Explosion(
+            (self.rect.center[0], 320), type='2', color='R', hits=[self])
+        explosions.append(
+            [explosion1, pygame.sprite.RenderPlain(explosion1)])
+        explosions.append(
+            [explosion2, pygame.sprite.RenderPlain(explosion2)])
 
 
 class BossShield(Enemy):
@@ -893,7 +914,7 @@ class BossShield(Enemy):
     Herda de Enemy.
     """
 
-    def __init__(self, position, lives=20, speed=.35, image=None, size=(145, 140), color=None):
+    def __init__(self, position, lives=50, speed=.35, image=None, size=(145, 140), color=None):
         """Boss Shield construtor
         :param position: a posição inicial do elemento.
         :type position: list
@@ -919,7 +940,7 @@ class BossShield(Enemy):
         self.color = color
         self.id = "boss"
 
-    def update(self, dt, playerposx, enemies, lst=None):
+    def update(self, dt, playerposx, enemies, lst=None, lst2=None):
         """ Atualiza a posição e situação do Bpss Shield
         :param dt: variação do tempo
         :type dt: int
@@ -949,63 +970,83 @@ class BossShield(Enemy):
         self.rect.center = (pos_x, pos_y)
 
 
-class Trojan(Enemy):
-    """ Classe Trojan
-    Herda de Enemy
-    """
+# class Trojan(Enemy):
+#     """ Classe Trojan
+#     Herda de Enemy
+#     """
 
-    def __init__(self, position, lives=100, speed=.35, image=None, size=(640, 160), color=None):
-        """ Trojan construtor.
-        :param position: a posição inicial do elemento.
-        :type position: lista
-        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
-        :type lives: inteiro (?)
-        :param speed: a velocidade inicial do elemento em ambos os eixos
-        :type speed: lista
-        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
-        :type image: string
-        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
-        :type new_size: lista
-        """
+#     def __init__(self, position, lives=1000, speed=.35, image=None, size=(640, 160), color=None):
+#         """ Trojan construtor.
+#         :param position: a posição inicial do elemento.
+#         :type position: lista
+#         :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+#         :type lives: inteiro (?)
+#         :param speed: a velocidade inicial do elemento em ambos os eixos
+#         :type speed: lista
+#         :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
+#         :type image: string
+#         :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
+#         :type new_size: lista
+#         """
 
-        # define a imagem padrão
-        image = "troia1.png" if not image else image
+#         # define a imagem padrão
+#         image = "troia1.png" if not image else image
 
-        # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
-        super().__init__(position, lives, speed, image, size)
-        self.direction = (1, 0)
-        self.shtcounter = 0
-        self.color = color
-        self.shield = True
-        self.id = "boss"
+#         # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
+#         super().__init__(position, lives, speed, image, size)
+#         self.direction = (1, 0)
+#         self.shtcounter = 0
+#         self.color = color
+#         self.shield = True
+#         self.id = "boss"
+#         self.sprite = 1
+#         self.spr_counter = 0
 
-    def update(self, dt, playerposx, enemies, lst=None):
-        """ Atualia a posição do Trojan
-        :param dt: variação do tempo
-        :type dt: int
-        """
+#     def update(self, dt, playerposx, enemies, lst=None, lst2=None):
+#         """ Atualia a posição do Trojan
+#         :param dt: variação do tempo
+#         :type dt: int
+#         """
 
-        pos_x = 320
-        pos_y = self.rect.center[1]
-        if pos_y < 80:
-            pos_y += self.speed*dt
-        pos_x += self.direction[0]*self.speed*dt/40
-        self.rect.center = (pos_x, pos_y)
+#         pos_x = 320
+#         pos_y = self.rect.center[1]
+#         if pos_y < 80:  # 640x160
+#             pos_y += self.speed*dt  # po
+#         self.rect.center = (pos_x, pos_y)
 
-        # definindo frequência de tiros do Trojan
-        if self.shtcounter > 60:
-            self.shoot(lst)
-            self.shtcounter = 0
-        self.shtcounter += 1
+#         # definindo frequência de tiros do Trojan
+#         if self.shtcounter > 20:
+#             self.shoot(lst)
+#             self.shtcounter = 0
+#         self.shtcounter += 1
+#         self.animate()
 
-    def shoot(self, shoots):
-        """Define os efeitos do tiro do Trojan
-        :param shoots: tiros do Trojan
-        :type shoots: list
-        """
-        # som do tiro
-        play_sound("Enemy Shoot.ogg")
-        # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
-        laser = Laser((random.randint(0, 640), self.rect.top),
-                      image=f'tiroinimigo{self.color}.png', direction=(0, 1))
-        shoots.append([laser, pygame.sprite.RenderPlain(laser)])
+#     def shoot(self, shoots):
+#         """Define os efeitos do tiro do Trojan
+#         :param shoots: tiros do Trojan
+#         :type shoots: list
+#         """
+#         # som do tiro
+#         play_sound("Enemy Shoot.ogg")
+#         # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
+#         laser = Laser((random.randint(0, 640), self.rect.top),
+#                       image=f'tiroinimigo{self.color}.png', direction=(0, 1))
+#         shoots.append([laser, pygame.sprite.RenderPlain(laser)])
+
+#     def animate(self):
+#         if self.lives > 500:
+#             if self.spr_counter < 10:
+#                 self.set_image(f'troia{self.sprite}.png', self.size)
+#                 self.sprite += 1
+#                 if self.sprite > 2:
+#                     self.sprite = 1:
+#             else:
+#                 self.spr_counter = 0
+#         else:
+#             if self.spr_counter < 10:
+#                 self.set_image(f'troia{self.sprite}.png', self.size)
+#                 self.sprite += 1
+#                 if self.sprite > 4:
+#                     self.sprite = 3:
+#             else:
+#                 self.spr_counter = 0

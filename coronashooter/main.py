@@ -62,7 +62,9 @@ class Game:
         self.last_score = 0
         # lista de dicionários para definir a presença dos inimigos nas fases
         self.waves = [{"spider": 1, "shooter": 0, "bomb": 0, "shield": 0}, {"spider": 2, "shooter": 1, "bomb": 0, "shield": 0}, {
-            "spider": 2, "shooter": 2, "bomb": 1, "shield": 0}, {"spider": 4, "shooter": 3, "bomb": 1, "shield": 2}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}]
+            "spider": 2, "shooter": 2, "bomb": 1, "shield": 0}, {"spider": 4, "shooter": 3, "bomb": 1, "shield": 2}, {
+            "spider": 2, "shooter": 4, "bomb": 2, "shield": 3}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}, {
+            "spider": 2, "shooter": 4, "bomb": 2, "shield": 3}]
         self.set_current_wave()
         self.scoreboss = 0
         self.bosscounter = 0
@@ -143,10 +145,6 @@ class Game:
         elif self.bosscounter == 3:
             enemy = BossShield((320, 10), color=self.color)
             self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
-        else:
-            enemy = BossSpider((320, 10), color=self.color)
-            self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
-            self.bosscounter = 0
 
     def handle_events(self, event, dt=1000):
         """ Lida com os eventos na fila de eventos
@@ -162,14 +160,16 @@ class Game:
                 self.run = False
 
         #
-        if self.player.score == self.level*100 + 20:
+        if self.true_score >= self.level*100 + 20:
+            self.temp_score = self.true_score
             self.summon_boss()
-            self.player.score += 1
+            self.true_score = 0
 
         if self.scoreboss == 1:
             self.level_changer()
             self.scoreboss = 0
             self.bosscounter += 1
+            self.true_score = self.temp_score
 
     def set_current_wave(self):
         """ Define a presença de cada inimigo nas fases, de acordo com a lista de dicionários definida
@@ -243,8 +243,9 @@ class Game:
         else:
             mult = 1
             if self.bosscounter >= 6:
-                mult = math.log(self.truescore + self.bosscounter*100)/4
-            self.enemy_counter += 1 * (self.level+1) * mult
+                mult = math.log(self.truescore + self.bosscounter*100)/8
+
+            self.enemy_counter += 1 * ((self.level/2)+1) * mult
 
         # Geração de power ups
         if self.power_up_counter > 180:  # tempo para spawn
@@ -294,11 +295,15 @@ class Game:
                 if enemy[0].get_lives() <= 0:
                     if enemy in self.enemies:
                         self.enemies.remove(enemy)
+                        self.player.add_score()
+                        self.true_score += 1
                         # tratamento especial para a bomba, que explode caso haja colisão
                         if enemy[0].get_id() == "boss":
                             self.scoreboss = 1  # define o scoreboss em 1 para possibilitar a passagem de nível
                             self.player.set_score(self.player.get_score() + 70)
+                            self.true_score += 70
                         if enemy[0].get_id() == "bomb":
+                            self.true_score += 1
                             self.handle_bomb_death(enemy)
                 self.colcounter = 60
             for shoot in self.shoots:
@@ -308,11 +313,13 @@ class Game:
                     enemy[0].got_hit()
                     # caso as vidas cheguem a 0, chama funções de morte de cada inimigo e os remove da lista de inimigos ativos
                     if enemy[0].get_lives() <= 0:
+                        self.true_score += 1
                         self.player.add_score()
                         if enemy[0].get_id() == "boss":
                             self.scoreboss = 1  # define o scoreboss em 1 para possibilitar a passagem de nível
                             self.player.set_score(self.player.get_score() + 70)
                         if enemy[0].get_id() == "bomb":
+                            self.true_score += 1
                             self.handle_bomb_death(enemy)
                         if enemy in self.enemies:
                             self.enemies.remove(enemy)
@@ -458,7 +465,9 @@ class Game:
         self.level = value
         self.color = self.color_list[self.level]  # muda a cor padrão
         scores = [0, 90, 190, 290, 390, 500]
-        self.player.set_score(scores[self.level])
+        bosscounters = [0, 1, 2, 3, 4, 5]
+        self.bosscounter = bosscounters[self.level]
+        self.true_score = scores[self.level]
         self.set_current_wave()  # chama a lista de inimigos do nível
         self.background = Background(
             f'fundo{self.color}.png')  # define o background
