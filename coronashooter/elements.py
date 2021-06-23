@@ -134,6 +134,33 @@ class ElementSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)
 
 
+class Block(ElementSprite):
+    def __init__(self, position, speed=0, image=None, direction=(0, 0), player=None, size=(80, 80), value=None):
+        """ ShieldPowerUp constructor
+        :param position: posição inicial do escudo
+        :type position: list
+        :param speed: velocidade inicial do elemento em ambos os eixos
+        :type speed: int
+        :param image: path e nome da imagem desejada para escudo. Default None
+        :type image: string
+        :param direction: direções para movimentação
+        :type direction: tuple
+        :param player: Player. Default None
+        :type player: main.Player
+        """
+
+        # define a imagem padrão
+        if not image:
+            image = "escudo.png"
+
+        # chama ElementSprite.__init__()
+        super().__init__(image, position, speed, direction=direction, new_size=size)
+        self.value = value
+
+    def get_value(self):
+        return self.value
+
+
 class ShieldPowerUp(ElementSprite):
     """ Classe do power up de escudo. Tem herança de ElementSprite
     """
@@ -683,7 +710,7 @@ class BossSpider(Enemy):
     """ Classe do Boss Spider.
     Herda de Enemy"""
 
-    def __init__(self, position, lives=30, speed=.35, image=None, size=(160, 160), color=None):
+    def __init__(self, position, lives=5, speed=.35, image=None, size=(160, 160), color=None):
         """BossSpider construtor
         :param position: a posição inicial do elemento.
         :type position: list
@@ -704,6 +731,7 @@ class BossSpider(Enemy):
 
         # chama ElementSprite.__init__()
         super().__init__(position, lives, speed, image, size)
+        self.id = "boss"
 
     def update(self, dt, playerposx, enemies, lst=None):
         """ Atualiza a posição e situação do elemento
@@ -757,6 +785,7 @@ class BossShooter(Enemy):
         self.direction = (1, 0)
         self.shtcounter = 0
         self.color = color
+        self.id = "boss"
 
     def update(self, dt, playerposx, enemies, lst=None):
         """ Atualiza a posição e situação do elemento
@@ -829,6 +858,7 @@ class BossBomb(Enemy):
         self.direction = (1, 0)
         self.shtcounter = 0
         self.color = color
+        self.id = "boss"
 
     def update(self, dt, playerposx, enemies, lst=None):
         """ Atualiza a posição e situação do shooter
@@ -887,6 +917,7 @@ class BossShield(Enemy):
         self.direction = (1, 0)
         self.shtcounter = 0
         self.color = color
+        self.id = "boss"
 
     def update(self, dt, playerposx, enemies, lst=None):
         """ Atualiza a posição e situação do Bpss Shield
@@ -923,7 +954,7 @@ class Trojan(Enemy):
     Herda de Enemy
     """
 
-    def __init__(self, position, lives=400, speed=.35, image=None, size=(640, 160), color=None):
+    def __init__(self, position, lives=100, speed=.35, image=None, size=(640, 160), color=None):
         """ Trojan construtor.
         :param position: a posição inicial do elemento.
         :type position: lista
@@ -946,6 +977,7 @@ class Trojan(Enemy):
         self.shtcounter = 0
         self.color = color
         self.shield = True
+        self.id = "boss"
 
     def update(self, dt, playerposx, enemies, lst=None):
         """ Atualia a posição do Trojan
