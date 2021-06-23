@@ -63,7 +63,7 @@ class Game:
         # lista de dicionários para definir a presença dos inimigos nas fases
         self.waves = [{"spider": 1, "shooter": 0, "bomb": 0, "shield": 0}, {"spider": 2, "shooter": 1, "bomb": 0, "shield": 0}, {
             "spider": 2, "shooter": 2, "bomb": 1, "shield": 0}, {"spider": 4, "shooter": 3, "bomb": 1, "shield": 2}, {
-            "spider": 2, "shooter": 4, "bomb": 2, "shield": 3}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 3}, {
+            "spider": 3, "shooter": 4, "bomb": 2, "shield": 2}, {"spider": 2, "shooter": 4, "bomb": 2, "shield": 2}, {
             "spider": 2, "shooter": 4, "bomb": 2, "shield": 3}]
         self.set_current_wave()
         self.scoreboss = 0
@@ -101,7 +101,7 @@ class Game:
         self.background.update(dt)
         for enemy in self.enemies:  # atualiza inimigos pela lista de inimigos vivos
             enemy[0].update(dt, self.player.rect.center[0],
-                            self.enemies, lst=self.enemy_shoots)
+                            self.enemies, lst=self.enemy_shoots, lst2=self.explosions)
         for shoot in self.shoots:  # atualiza tiros do player pela lista desses
             shoot[0].update(dt)
         for shoot in self.enemy_shoots:  # atualiza tiros dos inimigos pela lista desses
@@ -169,7 +169,7 @@ class Game:
             self.level_changer()
             self.scoreboss = 0
             self.bosscounter += 1
-            self.true_score = self.temp_score
+            self.true_score = self.temp_score + 70
 
     def set_current_wave(self):
         """ Define a presença de cada inimigo nas fases, de acordo com a lista de dicionários definida
@@ -502,10 +502,15 @@ class Game:
                 self.update_elements(dt)
             self.draw_elements()  # desenha os elementos
             self.garbage_collector()
+            if not self.start:
+                scoretext = self.font.render(
+                    "Last Score = "+str(self.last_score), 1, (255, 255, 255))
+                self.screen.blit(scoretext, (180, 19))
             if self.start:
                 self.update_interface()  # chama atualizações de interface
             if self.player.isdead:
                 self.start = False
+                self.last_score = self.player.get_score()
                 self.player = Player([305, 536], 3)
                 self.elements['player'] = pygame.sprite.RenderPlain(
                     self.player)

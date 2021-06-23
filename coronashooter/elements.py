@@ -587,6 +587,7 @@ class Bomb(Enemy):
 
         # define a imagem padrão
         image = f"inimigo3{color}.png" if not image else image
+        self.shield = True
 
         # chama ElementSprite.__init__()
         super().__init__(position, lives, speed, image, size)
