@@ -1,3 +1,31 @@
+# troPHY.exe 
+
+Bem vindo ao TroPHY.exe! Impeça a invasão de vírus ao seu PC nesse jogo de estilo shooter criado com o Pygame.
+
+## Funcionamento
+
+Mova a setinha através do seu teclado utilizando as setas `esquerda`, `direita`, `cima` e `baixo`. Atire nos vírus invasores com a tecla `Ctrl` e utilize o power-up de explosão com `Espaço`.
+
+### Menu interativo
+
+A defesa ao seu sistema já começa aqui! Note que o jogo é dividido em níveis sequenciais e de crescente dificuldade, mas é possível acessar todos eles a qualquer momento a partir do menu interativo! Basta mexer sua setinha até o nível desejado.
+Indicamos iniciar pelo Nível 1. É possível, ainda, acessar os créditos do jogo pelo menu.
+
+#### Power Ups
+
+Passe pelo power up na tela para ativá-lo temporariamente! 
+
+Super velocidade
+
+Tiros triplos
+
+Bomba - utilize a bomba com a barra de espaço!
+
+Escudo
+
+
+### Nível 1
+
 Oh não! Seu computador foi invadido pelos vírus spider! Destrua os invasores através dos seus disparos, mas fique atento à movimentação dos inimigos, já que eles tentam se aproximar do jogador.
 Ao fim da fase, batalhe contra o Spider Boss, de movimento vertical cíclico, para avançar para o próximo nível.
 
