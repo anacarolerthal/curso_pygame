@@ -146,6 +146,9 @@ class Game:
         elif self.bosscounter == 3:
             enemy = BossShield((320, 10), color=self.color)
             self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
+        elif self.bosscounter == 4:
+            enemy = Trojan((320, 10), color=self.color)
+            self.enemies.append([enemy, pygame.sprite.RenderPlain(enemy)])
 
     def handle_events(self, event, dt=1000):
         """ Lida com os eventos na fila de eventos
@@ -289,7 +292,7 @@ class Game:
             # checa se o jogador colidiu com o inimigo em questão
             plyr_collision = self.player.rect.colliderect(enemy[0].rect)
             if plyr_collision and self.colcounter <= 0:
-                print('ui')
+                #print('ui')
                 self.player.got_hit()
                 enemy[0].got_hit()
                 # remove o inimigo caso ele houver colisão
@@ -367,7 +370,7 @@ class Game:
         for power_up in self.power_ups:
             plyr_collision = self.player.rect.colliderect(power_up[0].rect)
             if plyr_collision:  # se ocorrer, implementa o power up
-                print(power_up[0].get_power())
+                #print(power_up[0].get_power())
                 self.player.set_power_up(power_up[0].get_power())
                 power_up[0].kill()
                 self.power_ups.remove(power_up)
@@ -710,7 +713,7 @@ class Player(Spaceship):
         else:  # se não tiver shield
             self.lives -= 1
         if self.lives <= 0:  # se for a última vida
-            print(self.score)
+            #print(self.score)
             self.isdead = True
 
     def get_pos(self):
@@ -729,7 +732,7 @@ class Player(Spaceship):
         :type score: int
         """
         self.score = score
-        print(self.score)
+        #print(self.score)
 
     def set_power_up(self, power_up):
         """ Define os power ups do Player
