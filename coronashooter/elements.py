@@ -556,7 +556,7 @@ class Shooter(Enemy):
         :type shoots: list
         """
         # som do tiro
-        play_sound("Enemy Shoot.ogg")
+        play_sound("Enemy Shoot.OGG")
 
         # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
         laser = Laser((self.rect.center[0], self.rect.top),
@@ -823,7 +823,7 @@ class BossShooter(Enemy):
         :type shoots: list
         """
         # som do tiro
-        play_sound("Enemy Shoot.ogg")
+        play_sound("Enemy Shoot.OGG")
         # cria os tiros (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
         laser1 = Laser((self.rect.center[0], self.rect.top),
                        image=f'tiroinimigoY.png', direction=(0, 1))
@@ -1037,7 +1037,7 @@ class Trojan(Enemy):
         :type shoots: list
         """
         # som do tiro
-        play_sound("Enemy Shoot.ogg")
+        play_sound("Enemy Shoot.OGG")
         # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
         laser = Laser((random.randint(0, 640), self.rect.top),
                       image=f'tiroinimigo{self.color}.png', direction=(0, 1))
