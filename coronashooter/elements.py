@@ -896,7 +896,7 @@ class BossBomb(Enemy):
         self.rect.center = (pos_x, pos_y)
 
         if (pos_x > 318 and pos_x < 322) or (pos_y > 318 and pos_y < 322):
-            print("in range")
+            #print("in range")
             self.explode(lst2)
 
     def explode(self, explosions):
@@ -971,83 +971,94 @@ class BossShield(Enemy):
         self.rect.center = (pos_x, pos_y)
 
 
-# class Trojan(Enemy):
-#     """ Classe Trojan
-#     Herda de Enemy
-#     """
+class Trojan(Enemy):
+    """ Classe Trojan
+    Herda de Enemy
+    """
 
-#     def __init__(self, position, lives=1000, speed=.35, image=None, size=(640, 160), color=None):
-#         """ Trojan construtor.
-#         :param position: a posição inicial do elemento.
-#         :type position: lista
-#         :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
-#         :type lives: inteiro (?)
-#         :param speed: a velocidade inicial do elemento em ambos os eixos
-#         :type speed: lista
-#         :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
-#         :type image: string
-#         :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
-#         :type new_size: lista
-#         """
+    def __init__(self, position, lives=200, speed=.35, image=None, size=(640, 160), color=None):
+        """ Trojan construtor.
+        :param position: a posição inicial do elemento.
+        :type position: lista
+        :param lives: quantas vezes o elemento pode ser atingido antes de morrer.
+        :type lives: inteiro (?)
+        :param speed: a velocidade inicial do elemento em ambos os eixos
+        :type speed: lista
+        :param image: a imagem do elemento. A classe possui um valor padrão  que é sobrescrito quando este parâmetro não é "None"
+        :type image: string
+        :param new_size: o tamanho desejado do sprite. Veja ElementSprite.scale()
+        :type new_size: lista
+        """
 
-#         # define a imagem padrão
-#         image = "troia1.png" if not image else image
+        # define a imagem padrão
+        image = "troia1.png" if not image else image
 
-#         # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
-#         super().__init__(position, lives, speed, image, size)
-#         self.direction = (1, 0)
-#         self.shtcounter = 0
-#         self.color = color
-#         self.shield = True
-#         self.id = "boss"
-#         self.sprite = 1
-#         self.spr_counter = 0
+        # chama ElementSprite.__init__() e define valores iniciais de objetos lógicos
+        super().__init__(position, lives, speed, image, size)
+        self.direction = (1, 0)
+        self.shtcounter = 0
+        self.color = color
+        self.shield = True
+        self.id = "boss"
+        self.sprite = 1
+        self.spr_counter = 0
+        self.size = size
 
-#     def update(self, dt, playerposx, enemies, lst=None, lst2=None):
-#         """ Atualia a posição do Trojan
-#         :param dt: variação do tempo
-#         :type dt: int
-#         """
+    def update(self, dt, playerposx, enemies, lst=None, lst2=None):
+        """ Atualia a posição do Trojan
+        :param dt: variação do tempo
+        :type dt: int
+        """
 
-#         pos_x = 320
-#         pos_y = self.rect.center[1]
-#         if pos_y < 80:  # 640x160
-#             pos_y += self.speed*dt  # po
-#         self.rect.center = (pos_x, pos_y)
+        pos_x = 320
+        pos_y = self.rect.center[1]
+        if pos_y < 80:  # 640x160
+            pos_y += self.speed*dt  # po
+        self.rect.center = (pos_x, pos_y)
 
-#         # definindo frequência de tiros do Trojan
-#         if self.shtcounter > 20:
-#             self.shoot(lst)
-#             self.shtcounter = 0
-#         self.shtcounter += 1
-#         self.animate()
+        # definindo frequência de tiros do Trojan
+            
+        if self.shtcounter > 20:
+            self.shoot(lst)
+            self.shtcounter = 0
+        if self.lives > 150:
+            self.shtcounter += 1
+        elif self.lives > 100:
+            self.shtcounter += 2
+        elif self.lives > 50:
+            self.shtcounter += 3
+        else:
+            self.shtcounter += 4
+        self.animate()
 
-#     def shoot(self, shoots):
-#         """Define os efeitos do tiro do Trojan
-#         :param shoots: tiros do Trojan
-#         :type shoots: list
-#         """
-#         # som do tiro
-#         play_sound("Enemy Shoot.ogg")
-#         # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
-#         laser = Laser((random.randint(0, 640), self.rect.top),
-#                       image=f'tiroinimigo{self.color}.png', direction=(0, 1))
-#         shoots.append([laser, pygame.sprite.RenderPlain(laser)])
+    def shoot(self, shoots):
+        """Define os efeitos do tiro do Trojan
+        :param shoots: tiros do Trojan
+        :type shoots: list
+        """
+        # som do tiro
+        play_sound("Enemy Shoot.ogg")
+        # cria o tiro (laser), mudando a imagem padrão da classe Laser e o adiciona à lista de tiros
+        laser = Laser((random.randint(0, 640), self.rect.top),
+                      image=f'tiroinimigo{self.color}.png', direction=(0, 1))
+        shoots.append([laser, pygame.sprite.RenderPlain(laser)])
 
-#     def animate(self):
-#         if self.lives > 500:
-#             if self.spr_counter < 10:
-#                 self.set_image(f'troia{self.sprite}.png', self.size)
-#                 self.sprite += 1
-#                 if self.sprite > 2:
-#                     self.sprite = 1:
-#             else:
-#                 self.spr_counter = 0
-#         else:
-#             if self.spr_counter < 10:
-#                 self.set_image(f'troia{self.sprite}.png', self.size)
-#                 self.sprite += 1
-#                 if self.sprite > 4:
-#                     self.sprite = 3:
-#             else:
-#                 self.spr_counter = 0
+    def animate(self):
+        if self.lives > 100:
+            if self.spr_counter < 10:
+                self.spr_counter += 1
+            else:
+                self.set_image(f'troia{self.sprite}.png', self.size)
+                self.sprite += 1
+                if self.sprite > 2:
+                    self.sprite = 1
+                self.spr_counter = 0
+        else:
+            if self.spr_counter < 10:
+                self.spr_counter += 1
+            else:
+                self.set_image(f'troia{self.sprite}.png', self.size)
+                self.sprite += 1
+                if self.sprite > 4:
+                    self.sprite = 3
+                self.spr_counter = 0
